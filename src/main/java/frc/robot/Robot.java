@@ -12,20 +12,26 @@ import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.IMotorControllerEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import frc.robot.subsystems.Arm;
-import frc.robot.subsystems.BallIntake;
+import frc.robot.autonomous.Autonomous;
+import frc.robot.autonomous.Radius;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Elevator;
+import frc.robot.utils.Selector;
 
 public class Robot extends TimedRobot {
     Joystick joystick;
     Drivetrain drivetrain;
+    AHRS navx;
+    Selector<Autonomous> autoSelector;
 
     @Override
     public void robotInit() {
+        AHRS navx = new AHRS(SPI.Port.kMXP);
+
         TalonSRX leftDrive = new TalonSRX(3);
         TalonSRX rightDrive = new TalonSRX(1);
 
@@ -40,9 +46,11 @@ public class Robot extends TimedRobot {
         configureFollowerMotor(leftFollower, leftDrive);
         configureFollowerMotor(rightFollower, rightDrive);
 
-        drivetrain = new Drivetrain(leftDrive, rightDrive);
+        drivetrain = new Drivetrain(leftDrive, rightDrive, navx, 2);
 
         joystick = new Joystick(0);
+
+        autoSelector = new Selector<>("autonomous", "Drive Radius", new Radius(drivetrain, navx));
     }
 
     @Override
@@ -60,21 +68,10 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         drivetrain.arcadeDrive(-joystick.getY(), joystick.getX());
+    }
 
-        // go to ball intake position
-        if (bottomButton.get()) {
-            superStructure.setBallIntake(BallIntake.Target.INTAKING);
-            superStructure.setElevator(Elevator.Target.BOTTOM);
-            superStructure.setArm(Arm.Target.DOWN);
-            superStructure.scheduleUpdate();
-        }
-        // if the arm is not all the way back
-        // ..make the elevator high enough to swing the arm back
-        // ..swing the arm all the way down
-        // if the ball intake is behind the elevator
-        // ..move elevator high enough to get the ball intake out
-        // ..let out the ball intake
-        // once the ball intake is out of the way of the elevator, lower the elevator
+    @Override
+    public void disabledInit() {
     }
 
     private void configureDriveMotor(IMotorControllerEnhanced motor) {
