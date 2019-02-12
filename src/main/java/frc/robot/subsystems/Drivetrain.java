@@ -24,7 +24,7 @@ public class Drivetrain {
         this.navx = navx;
         this.trackwidth = trackwidth;
 
-        this.nonLinearStateEstimator = new Odometry(0.0, 0.0, navx.getAngle());
+        // this.nonLinearStateEstimator = new Odometry(0.0, 0.0, navx.getAngle());
     }
 
     public double getTrackWidth() {
@@ -40,7 +40,7 @@ public class Drivetrain {
         leftDrive.set(ControlMode.PercentOutput, leftSpeed);
         rightDrive.set(ControlMode.PercentOutput, rightSpeed);
 
-        nonLinearStateEstimator.update(getLeftSensorPosition(), getRightSensorPosition(), navx.getAngle());
+        // nonLinearStateEstimator.update(getLeftSensorPosition(), getRightSensorPosition(), navx.getAngle());
     }
 
     public void arcadeDrive(double forwardSpeed, double turnSpeed) {

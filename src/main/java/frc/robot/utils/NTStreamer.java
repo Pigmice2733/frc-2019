@@ -15,15 +15,15 @@ public class NTStreamer<E> {
 
     public void send(E value) {
         if (value instanceof Boolean) {
-            if (this.value != value) {
+            if (this.value == null || this.value != value) {
                 entry.setBoolean((boolean) value);
             }
         } else if (value instanceof Double) {
-            if (Math.abs((double) this.value - (double) value) < 1e-6) {
-                entry.setDouble((double) value);
+            if (this.value == null || Math.abs((double) this.value - (double) value) < 1e-6) {
+                entry.setDouble(Math.round((double) value * 1000.0) / 1000.0);
             }
         } else if (value instanceof String) {
-            if (this.value != value) {
+            if (this.value == null || this.value != value) {
                 entry.setString(String.valueOf(value));
             }
         }

@@ -7,26 +7,34 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.IMotorControllerEnhanced;
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.autonomous.Autonomous;
 import frc.robot.autonomous.Radius;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Elevator;
 import frc.robot.utils.Selector;
 
 public class Robot extends TimedRobot {
-    Joystick joystick;
+    Joystick driverJoystick;
+    Joystick operatorJoystick;
     Drivetrain drivetrain;
     AHRS navx;
+    Elevator elevator;
     Selector<Autonomous> autoSelector;
+    TalonSRX elevatorMotorEncoder;
+    DigitalInput elevatorLimitSwitch;
 
     @Override
     public void robotInit() {
@@ -43,12 +51,21 @@ public class Robot extends TimedRobot {
         VictorSPX leftFollower = new VictorSPX(4);
         VictorSPX rightFollower = new VictorSPX(2);
 
+        elevatorMotorEncoder = new TalonSRX(5);
+        elevatorLimitSwitch = new DigitalInput(0);
+        TalonSRX elevatorMotorFollower = new TalonSRX(6);
+        configureFollowerMotor(elevatorMotorFollower, elevatorMotorEncoder);
+        elevatorMotorFollower.setInverted(InvertType.OpposeMaster);
+
         configureFollowerMotor(leftFollower, leftDrive);
         configureFollowerMotor(rightFollower, rightDrive);
 
         drivetrain = new Drivetrain(leftDrive, rightDrive, navx, 2);
+        elevator = new Elevator(elevatorMotorEncoder);
+        elevator.zeroSensor();
 
-        joystick = new Joystick(0);
+        driverJoystick = new Joystick(0);
+        operatorJoystick = new Joystick(1);
 
         autoSelector = new Selector<>("autonomous", "Drive Radius", new Radius(drivetrain, navx));
     }
@@ -67,7 +84,20 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
-        drivetrain.arcadeDrive(-joystick.getY(), joystick.getX());
+        drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+
+        if (operatorJoystick.getRawButton(4)) {
+            elevator.setTargetPosition(0.3);
+        } else {
+            elevator.setTargetPosition(0.8);
+        }
+        elevator.update();
+    }
+
+    @Override
+    public void testPeriodic() {
+        elevator.updateSensor();
+        elevatorMotorEncoder.set(ControlMode.PercentOutput, operatorJoystick.getY() * 0.6);
     }
 
     @Override
