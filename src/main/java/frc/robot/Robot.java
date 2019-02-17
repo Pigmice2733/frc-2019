@@ -20,6 +20,8 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.autonomous.Autonomous;
+import frc.robot.autonomous.Radius;
+import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.utils.Selector;
@@ -32,8 +34,7 @@ public class Robot extends TimedRobot {
     AHRS navx;
 
     Elevator elevator;
-
-    TalonSRX elevatorWinch;
+    Arm arm;
 
     Selector<Autonomous> autoSelector;
 
@@ -43,20 +44,24 @@ public class Robot extends TimedRobot {
 
         configureDrivetrain(3, 1, 4, 2);
 
-        elevatorWinch = new TalonSRX(5);
-        elevatorWinch.setSensorPhase(true);
+        TalonSRX elevatorWinch = new TalonSRX(5);
         TalonSRX elevatorFollower = new TalonSRX(6);
-        elevatorWinch.setInverted(true);
+        elevatorWinch.setSensorPhase(false);
+        elevatorWinch.setInverted(false);
         configureFollowerMotor(elevatorFollower, elevatorWinch);
         elevatorFollower.setInverted(InvertType.OpposeMaster);
 
         elevator = new Elevator(elevatorWinch);
 
+        TalonSRX shoulder = new TalonSRX(7);
+        shoulder.setSensorPhase(true);
+        arm = new Arm(shoulder);
+
         driverJoystick = new Joystick(0);
         operatorJoystick = new Joystick(1);
 
-        // autoSelector = new Selector<>("autonomous", "Drive Radius", new
-        // Radius(drivetrain, navx));
+        Autonomous autoMode = new Radius(drivetrain, navx);
+        autoSelector = new Selector<Autonomous>("autonomous", "Drive Radius", autoMode);
     }
 
     @Override
@@ -64,22 +69,33 @@ public class Robot extends TimedRobot {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
         if (operatorJoystick.getRawButton(4)) {
-            elevator.setTargetPosition(0.3);
-        } else {
             elevator.setTargetPosition(0.8);
+        } else {
+            elevator.setTargetPosition(0.0);
         }
         elevator.update();
+
+        if (operatorJoystick.getRawButton(1)) {
+            arm.setTargetPosition(0.8);
+        } else {
+            arm.setTargetPosition(0.2);
+        }
+        arm.update();
     }
 
     @Override
     public void testPeriodic() {
         elevator.updateSensor();
-        elevatorWinch.set(ControlMode.PercentOutput, -operatorJoystick.getY() * 0.6);
+        elevator.drive(-operatorJoystick.getY() * 0.6);
+
+        arm.updateSensor();
+        arm.drive(-operatorJoystick.getRawAxis(5) * 0.2);
     }
 
     @Override
     public void disabledPeriodic() {
         elevator.updateSensor();
+        arm.updateSensor();
     }
 
     private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {
