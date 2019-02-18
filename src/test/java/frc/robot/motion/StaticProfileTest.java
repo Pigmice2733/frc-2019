@@ -23,6 +23,23 @@ public class StaticProfileTest {
         }
     }
 
+    public static class MaxVelocityEqualityTest {
+        // Check to make sure comparisons to maximum velocity handled floating point
+        // error
+        private static StaticProfile fpe = new StaticProfile(0.0, 0.7789, 0.9, 0.65, 1.1, 1.1);
+
+        @Test
+        public void test() {
+            Assert.assertEquals(0.198, fpe.getVelocity(0.18), epsilon);
+            Assert.assertEquals(0.663599, fpe.getDuration(), epsilon);
+        }
+
+        @AfterClass
+        public static void plot() {
+            plotProfile(fpe, "fpe");
+        }
+    }
+
     public static class TrapezoidalTest {
         // Pure trapezoid
         private static StaticProfile trapezoidalProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
