@@ -16,14 +16,18 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.robot.autonomous.Autonomous;
 import frc.robot.autonomous.Radius;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Manipulator;
 import frc.robot.utils.Selector;
 
 public class Robot extends TimedRobot {
@@ -35,6 +39,7 @@ public class Robot extends TimedRobot {
 
     Elevator elevator;
     Arm arm;
+    Manipulator manipulator;
 
     Selector<Autonomous> autoSelector;
 
@@ -49,9 +54,9 @@ public class Robot extends TimedRobot {
         elevatorWinch.setSensorPhase(false);
         elevatorWinch.setInverted(false);
         configureFollowerMotor(elevatorFollower, elevatorWinch);
-        elevatorFollower.setInverted(InvertType.OpposeMaster);
 
         elevator = new Elevator(elevatorWinch);
+        manipulator = new Manipulator(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
 
         TalonSRX shoulder = new TalonSRX(7);
         shoulder.setSensorPhase(true);
@@ -76,10 +81,19 @@ public class Robot extends TimedRobot {
         elevator.update();
 
         if (operatorJoystick.getRawButton(1)) {
-            arm.setTargetPosition(0.8);
+            arm.setTargetPosition(0.14);
         } else {
-            arm.setTargetPosition(0.2);
+            arm.setTargetPosition(0.9);
         }
+
+        // if (operatorJoystick.getRawButton(6)) {
+        // manipulator.setPosition(Manipulator.State.Extend);
+        // } else if (operatorJoystick.getRawButton(2)) {
+        // manipulator.setPosition(Manipulator.State.Slack);
+        // } else {
+        // manipulator.setPosition(Manipulator.State.Retract);
+        // }
+
         arm.update();
     }
 
@@ -89,7 +103,7 @@ public class Robot extends TimedRobot {
         elevator.drive(-operatorJoystick.getY() * 0.6);
 
         arm.updateSensor();
-        arm.drive(-operatorJoystick.getRawAxis(5) * 0.2);
+        arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
     }
 
     @Override

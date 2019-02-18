@@ -25,6 +25,7 @@ public class Arm {
     private TalonSRX pivot;
 
     private Double targetPosition;
+    private static double verticalPosition = 0.779;
 
     private Bounds sensorBounds = new Bounds(0, 9500.0);
 
@@ -33,20 +34,23 @@ public class Arm {
     private NTStreamer<Double> targetStreamer;
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
+    private NTStreamer<Double> angleStreamer;
 
     private double kF = 0.4;
 
     public Arm(TalonSRX pivotMotor) {
         this.pivot = pivotMotor;
-        pivot.config_kP(0, 0.0);
-        pivot.config_kI(0, 0.0);
-        pivot.config_kD(0, 0.0);
-        pivot.config_kF(0, 0.0);
+        pivot.config_kP(0, 0.6, 10);
+        // pivot.config_kP(0, 0.0, 10);
+        pivot.config_kI(0, 0.0, 10);
+        pivot.config_kD(0, 0.0, 10);
+        pivot.config_kF(0, 0.0, 10);
 
         positionStreamer = new NTStreamer<>("arm", "position");
         targetStreamer = new NTStreamer<>("arm", "target");
         setpointStreamer = new NTStreamer<>("arm", "setpoint");
         outputStreamer = new NTStreamer<>("arm", "output");
+        angleStreamer = new NTStreamer<>("arm", "angle");
 
         targetPosition = Target.DOWN_FLAT;
 
@@ -63,7 +67,7 @@ public class Arm {
         if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             this.targetPosition = targetPosition;
             System.out.println("Profiling arm from " + getPosition() + " to " + targetPosition);
-            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.4, 0.2, 0.2);
+            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
             profileExecutor.initialize();
         }
@@ -80,12 +84,18 @@ public class Arm {
     }
 
     public void zeroSensor() {
-        pivot.setSelectedSensorPosition((int) sensorBounds.min());
+        pivot.setSelectedSensorPosition(
+                (int) Utils.lerp(verticalPosition, 0.0, 1.0, sensorBounds.min(), sensorBounds.max()));
     }
 
     public void updateSensor() {
         positionStreamer.send(getPosition());
         targetStreamer.send(this.targetPosition);
+        angleStreamer.send(getRealAngle());
+    }
+
+    private double getRealAngle() {
+        return Utils.lerp(getPosition(), 0.346, verticalPosition, 0, Math.PI / 2);
     }
 
     public void update() {
@@ -96,8 +106,10 @@ public class Arm {
 
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
+        double gravityCompensation = 0.1 * Math.cos(getRealAngle());
         setpointStreamer.send(sp.getPosition());
-        pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward, kF * sp.getVelocity() + 0.06);
+        pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
+                gravityCompensation + kF * sp.getVelocity());
         outputStreamer.send(pivot.getMotorOutputPercent());
     }
 }
