@@ -47,12 +47,12 @@ public class StaticProfile {
             chunk = Chunk.createVelocityTransition(currentVelocity, 0.0, maxAccel, maxDecel);
         }
         // Else if going faster than max speed
-        else if (Math.abs(currentVelocity) > maxVelocity) {
+        else if (Math.abs(currentVelocity) - maxVelocity > 1e-6) {
             // transition to max speed
             chunk = Chunk.createVelocityTransition(currentVelocity, maxVelocity * targetDirection, maxAccel, maxDecel);
         }
         // Else if going slower than max speed
-        else if (Math.abs(currentVelocity) < maxVelocity) {
+        else if (maxVelocity - Math.abs(currentVelocity) > 1e-6) {
             // If there is excess time to stop
             if (Math.abs(stoppingDistance) < Math.abs(remainingDistance)) {
                 // transition to max speed
