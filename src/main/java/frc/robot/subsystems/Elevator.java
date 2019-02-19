@@ -27,12 +27,12 @@ public class Elevator {
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
 
-    private double kF = 0.85;
+    private double kF;
 
     public Elevator(TalonSRX winchMotor) {
         winch = winchMotor;
-        winchMotor.config_kP(0, 0.001, 10);
-        winchMotor.config_kI(0, 0.000025, 10);
+        winchMotor.config_kP(0, 0.18, 10);
+        winchMotor.config_kI(0, 0.0, 10);
         winchMotor.config_kD(0, 0.0, 10);
         winchMotor.config_kF(0, 0.0, 10);
         winchMotor.configNeutralDeadband(0.005, 10);
@@ -56,13 +56,13 @@ public class Elevator {
             System.out.println("Profiling elevator from " + getPosition() + " to " + targetPosition);
             StaticProfile profile;
             if (this.targetPosition != null && this.targetPosition > targetPosition) {
+                kF = 0.56;
                 // Down
-                kF = 0.5;
-                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.5, 0.2, 0.10);
+                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.5, 0.4, 0.4);
             } else {
+                kF = 0.8;
                 // Up
-                kF = 1.2;
-                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.5, 0.2, 0.15);
+                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.5, 0.4, 0.4);
             }
             this.targetPosition = targetPosition;
             profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);

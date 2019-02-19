@@ -78,6 +78,7 @@ public class Robot extends TimedRobot {
         } else {
             elevator.setTargetPosition(0.0);
         }
+
         elevator.update();
 
         if (operatorJoystick.getRawButton(1)) {
