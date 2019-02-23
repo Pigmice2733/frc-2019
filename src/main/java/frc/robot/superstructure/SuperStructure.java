@@ -1,7 +1,7 @@
 package frc.robot.superstructure;
 
 import frc.robot.subsystems.Arm;
-import frc.robot.subsystems.BallIntake;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Manipulator;
 import frc.robot.utils.Bounds;
@@ -13,26 +13,26 @@ public class SuperStructure {
     private Pose currentPose;
 
     private Elevator elevator;
-    private BallIntake ballIntake;
+    private Intake intake;
     private Arm arm;
     private Manipulator lobster;
 
     public static class Target {
-        static final Pose STARTING_CONFIGURATION = new Pose(0.1, Arm.Target.ANGLED_DOWN, BallIntake.Target.STOWED_BACK);
-        static final Pose HATCH_INTAKE = new Pose(0.1, Arm.Target.DOWN_FLAT, BallIntake.Target.STOWED_BACK);
-        static final Pose HATCH_OUTTAKE_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, BallIntake.Target.STOWED_BACK);
-        static final Pose HATCH_OUTTAKE_MIDDLE = new Pose(0.5, Arm.Target.UP_FLAT, BallIntake.Target.STOWED_BACK);
-        static final Pose HATCH_OUTTAKE_TOP = new Pose(1.0, Arm.Target.UP_FLAT, BallIntake.Target.STOWED_BACK);
-        static final Pose CARGO_INTAKE = new Pose(0.5, Arm.Target.DOWN_FLAT, BallIntake.Target.INTAKE);
-        static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, BallIntake.Target.STOWED_UP);
-        static final Pose CARGO_OUTTAKE_MIDDLE = new Pose(0.6, Arm.Target.UP_FLAT, BallIntake.Target.STOWED_UP);
-        static final Pose CARGO_OUTTAKE_TOP = new Pose(1, Arm.Target.ANGLED_UP, BallIntake.Target.STOWED_UP);
-        static final Pose CARGO_OUTTAKE_SHIP = new Pose(0.6, Arm.Target.DOWN_FLAT, BallIntake.Target.STOWED_UP);
+        static final Pose STARTING_CONFIGURATION = new Pose(0.1, Arm.Target.ANGLED_DOWN, Intake.Target.STOWED_BACK);
+        static final Pose HATCH_INTAKE = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
+        static final Pose HATCH_OUTTAKE_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
+        static final Pose HATCH_OUTTAKE_MIDDLE = new Pose(0.5, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
+        static final Pose HATCH_OUTTAKE_TOP = new Pose(1.0, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
+        static final Pose CARGO_INTAKE = new Pose(0.5, Arm.Target.DOWN_FLAT, Intake.Target.INTAKE);
+        static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
+        static final Pose CARGO_OUTTAKE_MIDDLE = new Pose(0.6, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
+        static final Pose CARGO_OUTTAKE_TOP = new Pose(1, Arm.Target.ANGLED_UP, Intake.Target.STOWED_UP);
+        static final Pose CARGO_OUTTAKE_SHIP = new Pose(0.6, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
     }
 
-    public SuperStructure(Elevator elevator, BallIntake ballIntake, Arm arm) {
+    public SuperStructure(Elevator elevator, Intake ballIntake, Arm arm) {
         this.elevator = elevator;
-        this.ballIntake = ballIntake;
+        this.intake = ballIntake;
         this.arm = arm;
     }
 

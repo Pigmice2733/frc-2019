@@ -8,8 +8,6 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.robot.motion.Setpoint;
 import frc.robot.motion.execution.StaticProfileExecutor;
 import frc.robot.motion.StaticProfile;
-import frc.robot.pidf.Gains;
-import frc.robot.pidf.PIDF;
 import frc.robot.utils.Bounds;
 import frc.robot.utils.NTStreamer;
 import frc.robot.utils.Utils;
@@ -41,7 +39,6 @@ public class Arm {
     public Arm(TalonSRX pivotMotor) {
         this.pivot = pivotMotor;
         pivot.config_kP(0, 0.6, 10);
-        // pivot.config_kP(0, 0.0, 10);
         pivot.config_kI(0, 0.0, 10);
         pivot.config_kD(0, 0.0, 10);
         pivot.config_kF(0, 0.0, 10);

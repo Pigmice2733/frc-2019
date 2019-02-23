@@ -12,14 +12,18 @@ import frc.robot.utils.Bounds;
 import frc.robot.utils.NTStreamer;
 import frc.robot.utils.Utils;
 
-public class Elevator {
-    private TalonSRX winch;
+public class Intake {
+    public class Target {
+        public static final double INTAKE = 0;
+        public static final double STOWED_UP = 3 * 4096;
+        public static final double STOWED_BACK = 5 * 4096;
+    }
+
+    private TalonSRX pivot;
 
     private Double targetPosition;
 
-    // physical max: 30100
-    // physical min: 0
-    private Bounds sensorBounds = new Bounds(0, 30300.0);
+    private Bounds sensorBounds = new Bounds(0, 9500.0);
 
     private StaticProfileExecutor profileExecutor;
     private NTStreamer<Double> positionStreamer;
@@ -27,20 +31,21 @@ public class Elevator {
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
 
-    private double kF;
+    private double kF = 0.4;
 
-    public Elevator(TalonSRX winchMotor) {
-        winch = winchMotor;
-        winchMotor.config_kP(0, 0.18, 10);
-        winchMotor.config_kI(0, 0.0, 10);
-        winchMotor.config_kD(0, 0.0, 10);
-        winchMotor.config_kF(0, 0.0, 10);
-        winchMotor.configNeutralDeadband(0.005, 10);
+    public Intake(TalonSRX pivotMotor) {
+        this.pivot = pivotMotor;
+        pivot.config_kP(0, 0.6, 10);
+        pivot.config_kI(0, 0.0, 10);
+        pivot.config_kD(0, 0.0, 10);
+        pivot.config_kF(0, 0.0, 10);
 
-        positionStreamer = new NTStreamer<>("elevator", "position");
-        targetStreamer = new NTStreamer<>("elevator", "target");
-        setpointStreamer = new NTStreamer<>("elevator", "setpoint");
-        outputStreamer = new NTStreamer<>("elevator", "output");
+        positionStreamer = new NTStreamer<>("arm", "position");
+        targetStreamer = new NTStreamer<>("arm", "target");
+        setpointStreamer = new NTStreamer<>("arm", "setpoint");
+        outputStreamer = new NTStreamer<>("arm", "output");
+
+        targetPosition = Target.STOWED_BACK;
 
         zeroSensor();
         setTargetPosition(0.0);
@@ -48,40 +53,32 @@ public class Elevator {
 
     public void drive(double percent) {
         outputStreamer.send(percent);
-        winch.set(ControlMode.PercentOutput, percent);
+        pivot.set(ControlMode.PercentOutput, percent);
+        positionStreamer.send(getPosition());
     }
 
     public void setTargetPosition(double targetPosition) {
         if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
-            System.out.println("Profiling elevator from " + getPosition() + " to " + targetPosition);
-            StaticProfile profile;
-            if (this.targetPosition != null && this.targetPosition > targetPosition) {
-                kF = 0.56;
-                // Down
-                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.5, 0.4, 0.4);
-            } else {
-                kF = 0.8;
-                // Up
-                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.5, 0.4, 0.4);
-            }
             this.targetPosition = targetPosition;
+            System.out.println("Profiling arm from " + getPosition() + " to " + targetPosition);
+            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
             profileExecutor.initialize();
         }
     }
 
     public double getPosition() {
-        double raw = (double) winch.getSelectedSensorPosition();
+        double raw = (double) pivot.getSelectedSensorPosition();
         return Utils.lerp(raw, sensorBounds.min(), sensorBounds.max(), 0.0, 1.0);
     }
 
     public double getVelocity() {
-        double raw = (double) winch.getSelectedSensorVelocity();
+        double raw = (double) pivot.getSelectedSensorVelocity();
         return Utils.lerp(raw, -sensorBounds.size(), sensorBounds.size(), -1.0, 1.0);
     }
 
     public void zeroSensor() {
-        winch.setSelectedSensorPosition((int) sensorBounds.min());
+        pivot.setSelectedSensorPosition((int) sensorBounds.min());
     }
 
     public void updateSensor() {
@@ -98,7 +95,7 @@ public class Elevator {
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
         setpointStreamer.send(sp.getPosition());
-        winch.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward, kF * sp.getVelocity());
-        outputStreamer.send(winch.getMotorOutputPercent());
+        pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward, kF * sp.getVelocity());
+        outputStreamer.send(pivot.getMotorOutputPercent());
     }
 }

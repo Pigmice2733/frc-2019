@@ -7,41 +7,37 @@
 
 package frc.robot;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.IMotorControllerEnhanced;
-import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import frc.robot.autonomous.Autonomous;
-import frc.robot.autonomous.Radius;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Manipulator;
-import frc.robot.utils.Selector;
+import frc.robot.subsystems.Outtake;
+import frc.robot.subsystems.Stingers;
 
 public class Robot extends TimedRobot {
     Joystick driverJoystick;
     Joystick operatorJoystick;
 
     Drivetrain drivetrain;
+    Stingers stingers;
     AHRS navx;
 
     Elevator elevator;
     Arm arm;
     Manipulator manipulator;
-
-    Selector<Autonomous> autoSelector;
+    Outtake outtake;
 
     @Override
     public void robotInit() {
@@ -56,17 +52,21 @@ public class Robot extends TimedRobot {
         configureFollowerMotor(elevatorFollower, elevatorWinch);
 
         elevator = new Elevator(elevatorWinch);
+
         manipulator = new Manipulator(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
+        outtake = new Outtake(new TalonSRX(8));
 
         TalonSRX shoulder = new TalonSRX(7);
         shoulder.setSensorPhase(true);
         arm = new Arm(shoulder);
 
+        stingers = new Stingers(new DoubleSolenoid(4, 5));
+
         driverJoystick = new Joystick(0);
         operatorJoystick = new Joystick(1);
 
-        Autonomous autoMode = new Radius(drivetrain, navx);
-        autoSelector = new Selector<Autonomous>("autonomous", "Drive Radius", autoMode);
+        CameraServer server = CameraServer.getInstance();
+        server.startAutomaticCapture("Driver Cam", 0);
     }
 
     @Override
@@ -87,6 +87,12 @@ public class Robot extends TimedRobot {
             arm.setTargetPosition(0.9);
         }
 
+        if (operatorJoystick.getRawButton(2)) {
+            stingers.fire();
+        } else {
+            stingers.retract();
+        }
+
         // if (operatorJoystick.getRawButton(6)) {
         // manipulator.setPosition(Manipulator.State.Extend);
         // } else if (operatorJoystick.getRawButton(2)) {
@@ -105,6 +111,10 @@ public class Robot extends TimedRobot {
 
         arm.updateSensor();
         arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
+
+        if (operatorJoystick.getRawButton(1)) {
+            outtake.drive(0.4);
+        }
     }
 
     @Override
