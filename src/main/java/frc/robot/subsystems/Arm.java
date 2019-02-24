@@ -16,8 +16,9 @@ public class Arm {
     public class Target {
         public static final double ANGLED_DOWN = 0.05;
         public static final double ANGLED_UP = 0.85;
-        public static final double UP_FLAT = 0.95;
-        public static final double DOWN_FLAT = 0.15;
+        public static final double UP_FLAT = 0.925;
+        public static final double DOWN_FLAT = 0.071;
+        public static final double SLIGHTLY_DOWN = 0.04;
     }
 
     private TalonSRX pivot;
@@ -38,8 +39,8 @@ public class Arm {
 
     public Arm(TalonSRX pivotMotor) {
         this.pivot = pivotMotor;
-        pivot.config_kP(0, 0.6, 10);
-        pivot.config_kI(0, 0.0, 10);
+        pivot.config_kP(0, 0.7, 10);
+        pivot.config_kI(0, 0.005, 10);
         pivot.config_kD(0, 0.0, 10);
         pivot.config_kF(0, 0.0, 10);
 
@@ -81,8 +82,7 @@ public class Arm {
     }
 
     public void zeroSensor() {
-        pivot.setSelectedSensorPosition(
-                (int) Utils.lerp(verticalPosition, 0.0, 1.0, sensorBounds.min(), sensorBounds.max()));
+        pivot.setSelectedSensorPosition((int) Utils.lerp(-0.02, 0.0, 1.0, sensorBounds.min(), sensorBounds.max()));
     }
 
     public void updateSensor() {

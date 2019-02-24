@@ -1,12 +1,12 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 public class Outtake {
-    private TalonSRX motor;
+    private VictorSPX motor;
 
-    public Outtake(TalonSRX motor) {
+    public Outtake(VictorSPX motor) {
         this.motor = motor;
     }
 

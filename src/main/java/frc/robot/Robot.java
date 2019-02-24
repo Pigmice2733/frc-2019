@@ -47,14 +47,14 @@ public class Robot extends TimedRobot {
 
         TalonSRX elevatorWinch = new TalonSRX(5);
         TalonSRX elevatorFollower = new TalonSRX(6);
-        elevatorWinch.setSensorPhase(false);
-        elevatorWinch.setInverted(false);
+        elevatorWinch.setSensorPhase(true);
+        elevatorWinch.setInverted(true);
         configureFollowerMotor(elevatorFollower, elevatorWinch);
 
         elevator = new Elevator(elevatorWinch);
 
         manipulator = new Manipulator(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
-        outtake = new Outtake(new TalonSRX(8));
+        outtake = new Outtake(new VictorSPX(8));
 
         TalonSRX shoulder = new TalonSRX(7);
         shoulder.setSensorPhase(true);
@@ -74,40 +74,49 @@ public class Robot extends TimedRobot {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
         if (operatorJoystick.getRawButton(4)) {
-            elevator.setTargetPosition(0.8);
-        } else {
+            // Y
+            elevator.setTargetPosition(0.9);
+            arm.setTargetPosition(Arm.Target.UP_FLAT);
+        } else if (operatorJoystick.getRawButton(2)) {
+            // B
+            elevator.setTargetPosition(0.08);
+            arm.setTargetPosition(Arm.Target.UP_FLAT);
+        } else if (operatorJoystick.getRawButton(1)) {
+            // A
             elevator.setTargetPosition(0.0);
+            arm.setTargetPosition(Arm.Target.DOWN_FLAT);
+        } else if (operatorJoystick.getRawButton(3)) {
+            // X
+            elevator.setTargetPosition(1.1);
+            arm.setTargetPosition(Arm.Target.DOWN_FLAT);
+        }
+
+        // outtake.drive(-0.3);
+
+        // if (operatorJoystick.getRawButton(2)) {
+        // stingers.fire();
+        // } else {
+        // stingers.retract();
+        // }
+
+        if (operatorJoystick.getRawButton(6)) {
+            // right bumper
+            manipulator.setPosition(Manipulator.State.Slack);
+        } else if (operatorJoystick.getRawButton(5)) {
+            // left bumper
+            manipulator.setPosition(Manipulator.State.Extend);
+        } else {
+            manipulator.setPosition(Manipulator.State.Retract);
         }
 
         elevator.update();
-
-        if (operatorJoystick.getRawButton(1)) {
-            arm.setTargetPosition(0.14);
-        } else {
-            arm.setTargetPosition(0.9);
-        }
-
-        if (operatorJoystick.getRawButton(2)) {
-            stingers.fire();
-        } else {
-            stingers.retract();
-        }
-
-        // if (operatorJoystick.getRawButton(6)) {
-        // manipulator.setPosition(Manipulator.State.Extend);
-        // } else if (operatorJoystick.getRawButton(2)) {
-        // manipulator.setPosition(Manipulator.State.Slack);
-        // } else {
-        // manipulator.setPosition(Manipulator.State.Retract);
-        // }
-
         arm.update();
     }
 
     @Override
     public void testPeriodic() {
         elevator.updateSensor();
-        elevator.drive(-operatorJoystick.getY() * 0.6);
+        elevator.drive(-operatorJoystick.getY() * 0.4);
 
         arm.updateSensor();
         arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
