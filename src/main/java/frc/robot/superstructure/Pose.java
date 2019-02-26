@@ -5,7 +5,7 @@ public class Pose {
     public final double arm;
     public final double intake;
 
-    public Pose(double elevator, double arm, double intake) {
+    Pose(double elevator, double arm, double intake) {
         this.elevator = elevator;
         this.arm = arm;
         this.intake = intake;

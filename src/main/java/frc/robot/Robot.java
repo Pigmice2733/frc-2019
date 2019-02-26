@@ -41,10 +41,12 @@ public class Robot extends TimedRobot {
 
     Elevator elevator;
     Arm arm;
+    Intake intake;
     Manipulator manipulator;
     Outtake outtake;
 
     SuperStructure superStructure;
+    Pose target;
 
     @Override
     public void robotInit() {
@@ -67,9 +69,14 @@ public class Robot extends TimedRobot {
         shoulder.setSensorPhase(true);
         arm = new Arm(shoulder);
 
+        TalonSRX intakePivot = new TalonSRX(9);
+        TalonSRX intakeFollower = new TalonSRX(10);
+        configureFollowerMotor(intakeFollower, intakePivot);
+        intake = new Intake(intakePivot);
+
         stingers = new Stingers(new DoubleSolenoid(4, 5));
 
-        superStructure = new SuperStructure(elevator, arm, manipulator);
+        superStructure = new SuperStructure(elevator, arm, intake, manipulator);
 
         driverJoystick = new Joystick(0);
         operatorJoystick = new Joystick(1);
@@ -82,33 +89,41 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void autonomousInit() {
+        target = SuperStructure.Target.READY;
+        superStructure.initialize(target);
+    }
+
+    @Override
     public void teleopInit() {
-        superStructure.setTarget(new Pose(0.05, 0.3, 0.0));
+        target = SuperStructure.Target.READY;
+        superStructure.initialize(target);
     }
 
     @Override
     public void teleopPeriodic() {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
-        double elevator = 0.0;
-        double arm = 0.0;
-
         if (operatorJoystick.getRawButton(4)) {
             // Y
-            elevator = 0.9;
-            arm = Arm.Target.UP_FLAT;
+            target = SuperStructure.Target.CARGO_OUTTAKE_TOP;
+            // elevator = 0.9;
+            // arm = Arm.Target.UP_FLAT;
         } else if (operatorJoystick.getRawButton(2)) {
             // B
-            elevator = 0.08;
-            arm = Arm.Target.UP_FLAT;
+            target = SuperStructure.Target.HATCH_OUTTAKE_MIDDLE;
+            // elevator = 0.08;
+            // arm = Arm.Target.UP_FLAT;
         } else if (operatorJoystick.getRawButton(1)) {
             // A
-            elevator = 0.0;
-            arm = Arm.Target.DOWN_FLAT;
+            target = SuperStructure.Target.HATCH_OUTTAKE_BOTTOM;
+            // elevator = 0.0;
+            // arm = Arm.Target.DOWN_FLAT;
         } else if (operatorJoystick.getRawButton(3)) {
             // X
-            elevator = 1.1;
-            arm = Arm.Target.DOWN_FLAT;
+            target = SuperStructure.Target.CARGO_OUTTAKE_MIDDLE;
+            // elevator = 1.1;
+            // arm = Arm.Target.DOWN_FLAT;
         }
 
         // outtake.drive(-0.3);
@@ -129,7 +144,7 @@ public class Robot extends TimedRobot {
             manipulator.setPosition(Manipulator.State.Retract);
         }
 
-        superStructure.setTarget(new Pose(elevator, arm, 0.0));
+        superStructure.setTarget(target);
     }
 
     @Override

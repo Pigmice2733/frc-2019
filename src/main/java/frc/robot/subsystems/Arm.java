@@ -101,6 +101,10 @@ public class Arm {
         profileExecutor.update();
     }
 
+    public void resetPID() {
+        pivot.setIntegralAccumulator(0.0, 0, 10);
+    }
+
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
         double gravityCompensation = 0.1 * Math.cos(getRealAngle());
