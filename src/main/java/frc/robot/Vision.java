@@ -44,7 +44,7 @@ public class Vision {
         thread = createThread();
     }
 
-    public synchronized void setTarget(double targetDistance, double targetOffset) {
+    private synchronized void setTarget(double targetDistance, double targetOffset) {
         this.targetDistance = targetDistance;
         this.targetOffset = targetOffset;
     }

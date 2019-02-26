@@ -19,16 +19,21 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
+import frc.robot.Vision.Target;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Manipulator;
 import frc.robot.subsystems.Outtake;
 import frc.robot.subsystems.Stingers;
+import frc.robot.superstructure.Pose;
+import frc.robot.superstructure.SuperStructure;
 
 public class Robot extends TimedRobot {
     Joystick driverJoystick;
     Joystick operatorJoystick;
+    Vision vision;
 
     Drivetrain drivetrain;
     Stingers stingers;
@@ -38,6 +43,8 @@ public class Robot extends TimedRobot {
     Arm arm;
     Manipulator manipulator;
     Outtake outtake;
+
+    SuperStructure superStructure;
 
     @Override
     public void robotInit() {
@@ -62,33 +69,46 @@ public class Robot extends TimedRobot {
 
         stingers = new Stingers(new DoubleSolenoid(4, 5));
 
+        superStructure = new SuperStructure(elevator, arm, manipulator);
+
         driverJoystick = new Joystick(0);
         operatorJoystick = new Joystick(1);
+
+        vision = new Vision(this::isEnabled);
+        vision.start();
 
         CameraServer server = CameraServer.getInstance();
         server.startAutomaticCapture("Driver Cam", 0);
     }
 
     @Override
+    public void teleopInit() {
+        superStructure.setTarget(new Pose(0.05, 0.3, 0.0));
+    }
+
+    @Override
     public void teleopPeriodic() {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
+        double elevator = 0.0;
+        double arm = 0.0;
+
         if (operatorJoystick.getRawButton(4)) {
             // Y
-            elevator.setTargetPosition(0.9);
-            arm.setTargetPosition(Arm.Target.UP_FLAT);
+            elevator = 0.9;
+            arm = Arm.Target.UP_FLAT;
         } else if (operatorJoystick.getRawButton(2)) {
             // B
-            elevator.setTargetPosition(0.08);
-            arm.setTargetPosition(Arm.Target.UP_FLAT);
+            elevator = 0.08;
+            arm = Arm.Target.UP_FLAT;
         } else if (operatorJoystick.getRawButton(1)) {
             // A
-            elevator.setTargetPosition(0.0);
-            arm.setTargetPosition(Arm.Target.DOWN_FLAT);
+            elevator = 0.0;
+            arm = Arm.Target.DOWN_FLAT;
         } else if (operatorJoystick.getRawButton(3)) {
             // X
-            elevator.setTargetPosition(1.1);
-            arm.setTargetPosition(Arm.Target.DOWN_FLAT);
+            elevator = 1.1;
+            arm = Arm.Target.DOWN_FLAT;
         }
 
         // outtake.drive(-0.3);
@@ -109,8 +129,7 @@ public class Robot extends TimedRobot {
             manipulator.setPosition(Manipulator.State.Retract);
         }
 
-        elevator.update();
-        arm.update();
+        superStructure.setTarget(new Pose(elevator, arm, 0.0));
     }
 
     @Override
@@ -122,7 +141,7 @@ public class Robot extends TimedRobot {
         arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
 
         if (operatorJoystick.getRawButton(1)) {
-            outtake.drive(0.4);
+            outtake.drive(-0.15);
         }
     }
 
@@ -130,6 +149,9 @@ public class Robot extends TimedRobot {
     public void disabledPeriodic() {
         elevator.updateSensor();
         arm.updateSensor();
+
+        Target target = vision.getTarget();
+        System.out.println("Dist: " + target.distance + "  Offset: " + target.offset);
     }
 
     private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {

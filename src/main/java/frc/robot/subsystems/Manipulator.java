@@ -23,6 +23,28 @@ public class Manipulator {
         return true;
     }
 
+    public void setPosition(State value) {
+        switch (value) {
+        case Retract:
+            retract();
+            break;
+        case Extend:
+            extend();
+            break;
+        default:
+            if (lastValue == State.Extend) {
+                // if it has finished extending
+                if (Timer.getFPGATimestamp() - lastExtendedStart > 0.3) {
+                    slack();
+                }
+            } else if (lastValue == State.Retract) {
+                extend();
+                lastExtendedStart = Timer.getFPGATimestamp();
+            }
+            break;
+        }
+    }
+
     private void slack() {
         piston1.set(Value.kReverse);
         piston2.set(Value.kReverse);
@@ -39,23 +61,5 @@ public class Manipulator {
         piston1.set(Value.kForward);
         piston2.set(Value.kReverse);
         lastValue = State.Extend;
-    }
-
-    public void setPosition(State value) {
-        if (value == State.Retract) {
-            retract();
-        } else if (value == State.Extend) {
-            extend();
-        } else {
-            if (lastValue == State.Extend) {
-                // if it has finished extending
-                if (Timer.getFPGATimestamp() - lastExtendedStart > 0.3) {
-                    slack();
-                }
-            } else if (lastValue == State.Retract) {
-                extend();
-                lastExtendedStart = Timer.getFPGATimestamp();
-            }
-        }
     }
 }
