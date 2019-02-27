@@ -14,6 +14,7 @@ import frc.robot.utils.Utils;
 
 public class Arm {
     public class Target {
+        public static final double START = -0.02;
         public static final double ANGLED_DOWN = 0.05;
         public static final double ANGLED_UP = 0.85;
         public static final double UP_FLAT = 0.925;
@@ -63,6 +64,7 @@ public class Arm {
 
     public void setTargetPosition(double targetPosition) {
         if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
+            resetPID();
             this.targetPosition = targetPosition;
             System.out.println("Profiling arm from " + getPosition() + " to " + targetPosition);
             StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);

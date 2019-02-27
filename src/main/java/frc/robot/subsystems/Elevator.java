@@ -32,10 +32,10 @@ public class Elevator {
 
     public Elevator(TalonSRX winchMotor) {
         winch = winchMotor;
-        winchMotor.config_kP(0, 0.0015, 10);
+        winchMotor.config_kP(0, 0.2, 10);
         // winchMotor.config_kP(0, 0.0, 10);
         // winchMotor.config_kI(0, 0.000009, 10);
-        winchMotor.config_kI(0, 0.0, 10);
+        winchMotor.config_kI(0, 0.00000, 10);
         winchMotor.config_kD(0, 0.0, 10);
         winchMotor.config_kF(0, 0.0, 10);
         winchMotor.configNeutralDeadband(0.005, 10);
@@ -56,6 +56,7 @@ public class Elevator {
 
     public void setTargetPosition(double targetPosition) {
         if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
+            resetPID();
             System.out.println("Profiling elevator from " + getPosition() + " to " + targetPosition);
             StaticProfile profile;
             kF = 0.7;
