@@ -40,10 +40,10 @@ public class Intake {
         pivot.config_kD(0, 0.0, 10);
         pivot.config_kF(0, 0.0, 10);
 
-        positionStreamer = new NTStreamer<>("arm", "position");
-        targetStreamer = new NTStreamer<>("arm", "target");
-        setpointStreamer = new NTStreamer<>("arm", "setpoint");
-        outputStreamer = new NTStreamer<>("arm", "output");
+        positionStreamer = new NTStreamer<>("intake", "position");
+        targetStreamer = new NTStreamer<>("intake", "target");
+        setpointStreamer = new NTStreamer<>("intake", "setpoint");
+        outputStreamer = new NTStreamer<>("intake", "output");
 
         targetPosition = Target.STOWED_BACK;
 
