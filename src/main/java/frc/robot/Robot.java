@@ -60,6 +60,9 @@ public class Robot extends TimedRobot {
         elevatorWinch.setInverted(true);
         configureFollowerMotor(elevatorFollower, elevatorWinch);
 
+        configCurrentLimit(elevatorWinch);
+        configCurrentLimit(elevatorFollower);
+
         elevator = new Elevator(elevatorWinch);
 
         manipulator = new Manipulator(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
@@ -68,6 +71,8 @@ public class Robot extends TimedRobot {
         TalonSRX shoulder = new TalonSRX(7);
         shoulder.setSensorPhase(true);
         arm = new Arm(shoulder);
+
+        configCurrentLimit(shoulder);
 
         TalonSRX intakePivot = new TalonSRX(9);
         TalonSRX intakeFollower = new TalonSRX(10);
@@ -89,14 +94,8 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void autonomousInit() {
-        target = SuperStructure.Target.READY;
-        superStructure.initialize(target);
-    }
-
-    @Override
     public void teleopInit() {
-        target = SuperStructure.Target.READY;
+        target = SuperStructure.Target.STARTING_CONFIG;
         superStructure.initialize(target);
     }
 
@@ -106,33 +105,27 @@ public class Robot extends TimedRobot {
 
         if (operatorJoystick.getRawButton(4)) {
             // Y
-            target = SuperStructure.Target.CARGO_OUTTAKE_TOP;
+            target = SuperStructure.Target.HATCH_TOP;
             // elevator = 0.9;
             // arm = Arm.Target.UP_FLAT;
         } else if (operatorJoystick.getRawButton(2)) {
             // B
-            target = SuperStructure.Target.HATCH_OUTTAKE_MIDDLE;
+            target = SuperStructure.Target.HATCH_MIDDLE_BACK;
             // elevator = 0.08;
             // arm = Arm.Target.UP_FLAT;
         } else if (operatorJoystick.getRawButton(1)) {
             // A
-            target = SuperStructure.Target.HATCH_OUTTAKE_BOTTOM;
+            target = SuperStructure.Target.HATCH_BOTTOM;
             // elevator = 0.0;
             // arm = Arm.Target.DOWN_FLAT;
         } else if (operatorJoystick.getRawButton(3)) {
             // X
-            target = SuperStructure.Target.CARGO_OUTTAKE_MIDDLE;
+            target = SuperStructure.Target.HATCH_MIDDLE_FRONT;
             // elevator = 1.1;
             // arm = Arm.Target.DOWN_FLAT;
+        } else if (operatorJoystick.getRawButton(7)) {
+            target = SuperStructure.Target.STARTING_CONFIG;
         }
-
-        // outtake.drive(-0.3);
-
-        // if (operatorJoystick.getRawButton(2)) {
-        // stingers.fire();
-        // } else {
-        // stingers.retract();
-        // }
 
         if (operatorJoystick.getRawButton(6)) {
             // right bumper
@@ -145,6 +138,9 @@ public class Robot extends TimedRobot {
         }
 
         superStructure.setTarget(target);
+
+        Target visionTarget = vision.getTarget();
+        System.out.println("Offset: " + visionTarget.offset);
     }
 
     @Override
@@ -166,7 +162,6 @@ public class Robot extends TimedRobot {
         arm.updateSensor();
 
         Target target = vision.getTarget();
-        System.out.println("Dist: " + target.distance + "  Offset: " + target.offset);
     }
 
     private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {
@@ -191,6 +186,12 @@ public class Robot extends TimedRobot {
         configureVoltageComp(motor);
         motor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0);
         motor.setSelectedSensorPosition(0, 0, 10);
+    }
+
+    private void configCurrentLimit(IMotorControllerEnhanced motor) {
+        motor.configContinuousCurrentLimit(10, 10);
+        motor.configPeakCurrentLimit(20, 10);
+        motor.configPeakCurrentDuration(500, 10);
     }
 
     private void configureFollowerMotor(IMotorController follower, IMotorController leader) {

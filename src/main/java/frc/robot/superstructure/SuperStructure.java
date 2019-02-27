@@ -20,17 +20,14 @@ public class SuperStructure {
     private Manipulator manipulator;
 
     public static class Target {
-        public static final Pose STARTING_CONFIG = new Pose(0.1, Arm.Target.ANGLED_DOWN, Intake.Target.STOWED_BACK);
-        public static final Pose READY = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
-        public static final Pose HATCH_INTAKE = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
-        public static final Pose HATCH_OUTTAKE_BOTTOM = new Pose(0.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
-        public static final Pose HATCH_OUTTAKE_MIDDLE = new Pose(0.08, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
-        public static final Pose HATCH_OUTTAKE_TOP = new Pose(1.0, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
-        public static final Pose CARGO_INTAKE = new Pose(0.5, Arm.Target.DOWN_FLAT, Intake.Target.INTAKE);
-        public static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_OUTTAKE_MIDDLE = new Pose(1.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_OUTTAKE_TOP = new Pose(0.9, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_OUTTAKE_SHIP = new Pose(0.6, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose STARTING_CONFIG = new Pose(0.1, Arm.Target.START, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_BOTTOM = new Pose(0.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_MIDDLE_FRONT = new Pose(1.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_MIDDLE_BACK = new Pose(0.08, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_TOP = new Pose(0.9, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.INTAKE);
+        public static final Pose CARGO_MIDDLE = new Pose(1.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_TOP = new Pose(1.1, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
     }
 
     public SuperStructure(Elevator elevator, Arm arm, Intake intake, Manipulator manipulator) {
@@ -80,14 +77,21 @@ public class SuperStructure {
      * Returns the next intermediate step in reaching the final target
      */
     public Pose getIntermediatePose() {
-        final Pose start = currentPose;
-        final Pose end = finalTarget;
 
-        // Prevent arm scoop from hitting battery in starting config
-        if (start.arm < 0.1 && start.elevator < 0.3) {
-            return end.setElevatorMin(0.3);
+        // Prevent arm scoop from hitting battery going to/from starting config
+        if ((currentPose.arm < 0.05 || finalTarget.arm < 0.05)) {
+            // If arm is close to start, and start is the target, let elevator down
+            if (currentPose.arm < 0.0 && finalTarget.arm == Arm.Target.START) {
+                return finalTarget;
+                // If elevator is too low, raise immediatly
+            } else if (currentPose.elevator < 0.2) {
+                return currentPose.setElevatorMin(0.25);
+                // Maintained raised elevator throughout move until not over battery
+            } else {
+                return finalTarget.setElevatorMin(0.25);
+            }
         }
 
-        return end;
+        return finalTarget;
     }
 }
