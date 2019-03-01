@@ -81,7 +81,7 @@ public class Robot extends TimedRobot {
 
         stingers = new Stingers(new DoubleSolenoid(4, 5));
 
-        superStructure = new SuperStructure(elevator, arm, intake, manipulator);
+        superStructure = new SuperStructure(elevator, arm, intake, stingers, navx);
 
         driverJoystick = new Joystick(0);
         operatorJoystick = new Joystick(1);
@@ -110,7 +110,7 @@ public class Robot extends TimedRobot {
             // arm = Arm.Target.UP_FLAT;
         } else if (operatorJoystick.getRawButton(2)) {
             // B
-            target = SuperStructure.Target.HATCH_MIDDLE_BACK;
+            target = SuperStructure.Target.HATCH_M_BACK;
             // elevator = 0.08;
             // arm = Arm.Target.UP_FLAT;
         } else if (operatorJoystick.getRawButton(1)) {
@@ -120,7 +120,7 @@ public class Robot extends TimedRobot {
             // arm = Arm.Target.DOWN_FLAT;
         } else if (operatorJoystick.getRawButton(3)) {
             // X
-            target = SuperStructure.Target.HATCH_MIDDLE_FRONT;
+            target = SuperStructure.Target.HATCH_M_FRONT;
             // elevator = 1.1;
             // arm = Arm.Target.DOWN_FLAT;
         } else if (operatorJoystick.getRawButton(7)) {

@@ -15,8 +15,8 @@ import frc.robot.utils.Utils;
 public class Intake {
     public class Target {
         public static final double INTAKE = 0;
-        public static final double STOWED_UP = 3 * 4096;
-        public static final double STOWED_BACK = 5 * 4096;
+        public static final double STOWED_UP = 0;
+        public static final double STOWED_BACK = 0;
     }
 
     private TalonSRX pivot;
@@ -60,7 +60,7 @@ public class Intake {
     public void setTargetPosition(double targetPosition) {
         if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             this.targetPosition = targetPosition;
-            System.out.println("Profiling arm from " + getPosition() + " to " + targetPosition);
+            System.out.println("Profiling intake from " + getPosition() + " to " + targetPosition);
             StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
             profileExecutor.initialize();

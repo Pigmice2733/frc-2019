@@ -10,12 +10,12 @@ public class Stingers {
         this.solenoid = solenoid;
     }
 
-    public void fire() {
-        solenoid.set(Value.kReverse);
+    public boolean isExtending() {
+        return solenoid.get().equals(Value.kReverse);
     }
 
-    public void stop() {
-        solenoid.set(Value.kOff);
+    public void fire() {
+        solenoid.set(Value.kReverse);
     }
 
     public void retract() {
