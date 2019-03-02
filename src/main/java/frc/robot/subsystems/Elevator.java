@@ -15,7 +15,7 @@ import frc.robot.utils.Utils;
 public class Elevator {
     private TalonSRX winch;
 
-    private Double targetPosition;
+    private Double targetPosition = null;
 
     // physical max: 30100
     // physical min: 0

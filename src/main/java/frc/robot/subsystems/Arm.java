@@ -24,7 +24,7 @@ public class Arm {
 
     private TalonSRX pivot;
 
-    private Double targetPosition;
+    private Double targetPosition = null;
     private static double verticalPosition = 0.779;
 
     private Bounds sensorBounds = new Bounds(0, 9500.0);

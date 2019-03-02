@@ -14,17 +14,17 @@ import frc.robot.utils.Utils;
 
 public class Intake {
     public class Target {
-        public static final double INTAKE = 0;
-        public static final double STOWED_UP = 0;
-        public static final double STOWED_BACK = 0;
+        public static final double INTAKE = 0.53;
+        public static final double STOWED_UP = 0.34;
+        public static final double STOWED_BACK = 0.0;
     }
 
     private TalonSRX pivot;
     private TalonSRX roller;
 
-    private Double targetPosition;
+    private Double targetPosition = null;
 
-    private Bounds sensorBounds = new Bounds(0, 9500.0);
+    private Bounds sensorBounds = new Bounds(0, 2640.0);
 
     private StaticProfileExecutor profileExecutor;
     private NTStreamer<Double> positionStreamer;
@@ -32,12 +32,12 @@ public class Intake {
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
 
-    private double kF = 0.4;
+    private double kF = 0.2;
 
     public Intake(TalonSRX pivotMotor, TalonSRX rollerMotor) {
         this.pivot = pivotMotor;
         this.roller = rollerMotor;
-        pivot.config_kP(0, 0.6, 10);
+        pivot.config_kP(0, 0.2, 10);
         pivot.config_kI(0, 0.0, 10);
         pivot.config_kD(0, 0.0, 10);
         pivot.config_kF(0, 0.0, 10);
@@ -64,12 +64,16 @@ public class Intake {
     }
 
     public void setTargetPosition(double targetPosition) {
+        System.out.println("target position" + (targetPosition + this.targetPosition));
         if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             this.targetPosition = targetPosition;
             System.out.println("Profiling intake from " + getPosition() + " to " + targetPosition);
             StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
             profileExecutor.initialize();
+            System.out.println("Hey");
+        } else {
+            System.out.println("Wat " + this.targetPosition);
         }
     }
 

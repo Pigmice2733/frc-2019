@@ -77,6 +77,7 @@ public class Robot extends TimedRobot {
 
         TalonSRX intakePivot = new TalonSRX(9);
         intakePivot.setInverted(true);
+        intakePivot.setSensorPhase(true);
         VictorSPX intakeFollower = new VictorSPX(10);
         TalonSRX intakeRoller = new TalonSRX(11);
         configureFollowerMotor(intakeFollower, intakePivot);
@@ -93,8 +94,8 @@ public class Robot extends TimedRobot {
         vision = new Vision(this::isEnabled);
         vision.start();
 
-        CameraServer server = CameraServer.getInstance();
-        server.startAutomaticCapture("Driver Cam", 0);
+        // CameraServer server = CameraServer.getInstance();
+        // server.startAutomaticCapture("Driver Cam", 0);
     }
 
     @Override
