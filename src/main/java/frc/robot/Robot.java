@@ -10,6 +10,7 @@ package frc.robot;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.IMotorControllerEnhanced;
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
@@ -75,9 +76,12 @@ public class Robot extends TimedRobot {
         configCurrentLimit(shoulder);
 
         TalonSRX intakePivot = new TalonSRX(9);
-        TalonSRX intakeFollower = new TalonSRX(10);
+        intakePivot.setInverted(true);
+        VictorSPX intakeFollower = new VictorSPX(10);
+        TalonSRX intakeRoller = new TalonSRX(11);
         configureFollowerMotor(intakeFollower, intakePivot);
-        intake = new Intake(intakePivot);
+        intakeFollower.setInverted(InvertType.OpposeMaster);
+        intake = new Intake(intakePivot, intakeRoller);
 
         stingers = new Stingers(new DoubleSolenoid(4, 5));
 
@@ -103,41 +107,49 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
-        if (operatorJoystick.getRawButton(4)) {
-            // Y
-            target = SuperStructure.Target.HATCH_TOP;
-            // elevator = 0.9;
-            // arm = Arm.Target.UP_FLAT;
-        } else if (operatorJoystick.getRawButton(2)) {
-            // B
-            target = SuperStructure.Target.HATCH_M_BACK;
-            // elevator = 0.08;
-            // arm = Arm.Target.UP_FLAT;
-        } else if (operatorJoystick.getRawButton(1)) {
-            // A
-            target = SuperStructure.Target.HATCH_BOTTOM;
-            // elevator = 0.0;
-            // arm = Arm.Target.DOWN_FLAT;
-        } else if (operatorJoystick.getRawButton(3)) {
-            // X
-            target = SuperStructure.Target.HATCH_M_FRONT;
-            // elevator = 1.1;
-            // arm = Arm.Target.DOWN_FLAT;
-        } else if (operatorJoystick.getRawButton(7)) {
-            target = SuperStructure.Target.STARTING_CONFIG;
+        // if (operatorJoystick.getRawButton(4)) {
+        // // Y
+        // target = SuperStructure.Target.HATCH_TOP;
+        // // elevator = 0.9;
+        // // arm = Arm.Target.UP_FLAT;
+        // } else if (operatorJoystick.getRawButton(2)) {
+        // // B
+        // target = SuperStructure.Target.HATCH_M_BACK;
+        // // elevator = 0.08;
+        // // arm = Arm.Target.UP_FLAT;
+        // } else if (operatorJoystick.getRawButton(1)) {
+        // // A
+        // target = SuperStructure.Target.HATCH_BOTTOM;
+        // // elevator = 0.0;
+        // // arm = Arm.Target.DOWN_FLAT;
+        // } else if (operatorJoystick.getRawButton(3)) {
+        // // X
+        // target = SuperStructure.Target.HATCH_M_FRONT;
+        // // elevator = 1.1;
+        // // arm = Arm.Target.DOWN_FLAT;
+        // } else if (operatorJoystick.getRawButton(7)) {
+        // target = SuperStructure.Target.STARTING_CONFIG;
+        // }
+
+        // if (operatorJoystick.getRawButton(6)) {
+        // // right bumper
+        // manipulator.setPosition(Manipulator.State.Slack);
+        // } else if (operatorJoystick.getRawButton(5)) {
+        // // left bumper
+        // manipulator.setPosition(Manipulator.State.Extend);
+        // } else {
+        // manipulator.setPosition(Manipulator.State.Retract);
+        // }
+
+        // superStructure.setTarget(target);
+
+        if (operatorJoystick.getRawButton(1)) {
+            intake.setTargetPosition(Intake.Target.INTAKE);
+        } else if (operatorJoystick.getRawButton(4)) {
+            intake.setTargetPosition(Intake.Target.STOWED_UP);
         }
 
-        if (operatorJoystick.getRawButton(6)) {
-            // right bumper
-            manipulator.setPosition(Manipulator.State.Slack);
-        } else if (operatorJoystick.getRawButton(5)) {
-            // left bumper
-            manipulator.setPosition(Manipulator.State.Extend);
-        } else {
-            manipulator.setPosition(Manipulator.State.Retract);
-        }
-
-        superStructure.setTarget(target);
+        intake.update();
 
         Target visionTarget = vision.getTarget();
         System.out.println("Offset: " + visionTarget.offset);
@@ -148,18 +160,31 @@ public class Robot extends TimedRobot {
         elevator.updateSensor();
         elevator.drive(-operatorJoystick.getY() * 0.4);
 
-        arm.updateSensor();
-        arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
+        // arm.updateSensor();
+        // arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
+
+        intake.updateSensor();
+        intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
 
         if (operatorJoystick.getRawButton(1)) {
             outtake.drive(-0.15);
+        } else {
+            intake.setRoller(0.0);
         }
+
+        if (operatorJoystick.getRawButton(4)) {
+            intake.setRoller(0.6);
+        } else {
+            intake.setRoller(0.0);
+        }
+
     }
 
     @Override
     public void disabledPeriodic() {
         elevator.updateSensor();
         arm.updateSensor();
+        intake.updateSensor();
 
         Target target = vision.getTarget();
     }

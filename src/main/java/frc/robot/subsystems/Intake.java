@@ -20,6 +20,7 @@ public class Intake {
     }
 
     private TalonSRX pivot;
+    private TalonSRX roller;
 
     private Double targetPosition;
 
@@ -33,8 +34,9 @@ public class Intake {
 
     private double kF = 0.4;
 
-    public Intake(TalonSRX pivotMotor) {
+    public Intake(TalonSRX pivotMotor, TalonSRX rollerMotor) {
         this.pivot = pivotMotor;
+        this.roller = rollerMotor;
         pivot.config_kP(0, 0.6, 10);
         pivot.config_kI(0, 0.0, 10);
         pivot.config_kD(0, 0.0, 10);
@@ -55,6 +57,10 @@ public class Intake {
         outputStreamer.send(percent);
         pivot.set(ControlMode.PercentOutput, percent);
         positionStreamer.send(getPosition());
+    }
+
+    public void setRoller(double percent) {
+        roller.set(ControlMode.PercentOutput, percent);
     }
 
     public void setTargetPosition(double targetPosition) {
