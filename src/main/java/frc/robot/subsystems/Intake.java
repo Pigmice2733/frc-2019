@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.motion.Setpoint;
@@ -32,12 +33,14 @@ public class Intake {
     private NTStreamer<Double> targetStreamer;
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
+    private AHRS navx;
 
     private double kF = 0.75;
 
-    public Intake(TalonSRX pivotMotor, TalonSRX rollerMotor) {
+    public Intake(TalonSRX pivotMotor, TalonSRX rollerMotor, AHRS navx) {
         pivot = pivotMotor;
         roller = rollerMotor;
+        this.navx = navx;
         pivot.config_kP(0, 1.2, 10);
         pivot.config_kI(0, 0.001, 10);
         pivot.config_kD(0, 1.2, 10);
@@ -60,6 +63,15 @@ public class Intake {
 
     public void setRoller(double percent) {
         roller.set(ControlMode.PercentOutput, percent);
+    }
+
+    public void levelRobot() {
+        pivot.set(ControlMode.PercentOutput, 0.1 * (navx.getRoll() + 3));
+        System.out.println(navx.getRoll() + pivot.getMotorOutputPercent());
+    }
+
+    public void setPivotPercent(double percent) {
+        pivot.set(ControlMode.PercentOutput, percent);
     }
 
     public void setTargetPosition(double targetPosition) {

@@ -60,7 +60,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        AHRS navx = new AHRS(SPI.Port.kMXP);
+        navx = new AHRS(SPI.Port.kMXP);
 
         configureDrivetrain(3, 1, 4, 2);
 
@@ -89,7 +89,7 @@ public class Robot extends TimedRobot {
         TalonSRX intakeRoller = new TalonSRX(11);
         configureFollowerMotor(intakeFollower, intakePivot);
         intakeFollower.setInverted(InvertType.OpposeMaster);
-        intake = new Intake(intakePivot, intakeRoller);
+        intake = new Intake(intakePivot, intakeRoller, navx);
 
         stingers = new Stingers(new DoubleSolenoid(4, 5), new DoubleSolenoid(6, 7));
 
@@ -214,6 +214,15 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testPeriodic() {
+        drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+        intake.setRoller(-driverJoystick.getY());
+
+        if (operatorJoystick.getRawButton(3)) {
+            intake.levelRobot();
+        } else {
+            intake.setPivotPercent(0);
+        }
+
         elevator.updateSensor();
         elevator.drive(-operatorJoystick.getY() * 0.4);
 
@@ -223,22 +232,22 @@ public class Robot extends TimedRobot {
         arm.drive(0.0);
 
         intake.updateSensor();
-        intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
+        // intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
 
-        if (operatorJoystick.getRawButton(1)) {
-            outtake.drive(-0.15);
-        } else {
-            intake.setRoller(0.0);
-        }
+        // if (operatorJoystick.getRawButton(1)) {
+        // outtake.drive(-0.15);
+        // } else {
+        // intake.setRoller(0.0);
+        // }
 
-        if (operatorJoystick.getRawButton(4)) {
-            intake.setRoller(0.6);
-        } else {
-            intake.setRoller(0.0);
-        }
+        // if (operatorJoystick.getRawButton(4)) {
+        // intake.setRoller(0.6);
+        // } else {
+        // intake.setRoller(0.0);
+        // }
 
         if (operatorJoystick.getRawButton(2)) {
-            stingers.fire();
+            stingers.extend();
         } else {
             stingers.retract();
         }
