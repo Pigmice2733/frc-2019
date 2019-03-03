@@ -15,7 +15,7 @@ import frc.robot.utils.Utils;
 public class Elevator {
     private TalonSRX winch;
 
-    private Double targetPosition = null;
+    private Double targetPosition;
 
     // physical max: 30100
     // physical min: 0
@@ -27,8 +27,8 @@ public class Elevator {
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
 
-    private double kF;
-    private double gravityCompensation;
+    private double kF = 0.7;
+    private double gravityCompensation = 0.055;
 
     public Elevator(TalonSRX winchMotor) {
         winch = winchMotor;
@@ -46,7 +46,7 @@ public class Elevator {
         outputStreamer = new NTStreamer<>("elevator", "output");
 
         zeroSensor();
-        setTargetPosition(0.5);
+        setTargetPosition(0.138);
     }
 
     public void drive(double percent) {
@@ -55,12 +55,9 @@ public class Elevator {
     }
 
     public void setTargetPosition(double targetPosition) {
-        if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
+        if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             resetPID();
-            System.out.println("Profiling elevator from " + getPosition() + " to " + targetPosition);
             StaticProfile profile;
-            kF = 0.7;
-            gravityCompensation = 0.055;
             if (this.targetPosition != null && this.targetPosition > targetPosition) {
                 // kF = 0.58;
                 // Down

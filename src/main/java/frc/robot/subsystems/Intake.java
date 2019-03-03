@@ -14,15 +14,16 @@ import frc.robot.utils.Utils;
 
 public class Intake {
     public class Target {
-        public static final double INTAKE = 0.53;
-        public static final double STOWED_UP = 0.34;
-        public static final double STOWED_BACK = 0.0;
+        public static final double START = 0.0;
+        public static final double INTAKE = 0.545;
+        public static final double STOWED_UP = 0.365;
+        public static final double STOWED_BACK = 0.06;
     }
 
     private TalonSRX pivot;
     private TalonSRX roller;
 
-    private Double targetPosition = null;
+    private Double targetPosition;
 
     private Bounds sensorBounds = new Bounds(0, 2640.0);
 
@@ -32,14 +33,14 @@ public class Intake {
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
 
-    private double kF = 0.2;
+    private double kF = 0.75;
 
     public Intake(TalonSRX pivotMotor, TalonSRX rollerMotor) {
-        this.pivot = pivotMotor;
-        this.roller = rollerMotor;
-        pivot.config_kP(0, 0.2, 10);
-        pivot.config_kI(0, 0.0, 10);
-        pivot.config_kD(0, 0.0, 10);
+        pivot = pivotMotor;
+        roller = rollerMotor;
+        pivot.config_kP(0, 1.2, 10);
+        pivot.config_kI(0, 0.001, 10);
+        pivot.config_kD(0, 1.2, 10);
         pivot.config_kF(0, 0.0, 10);
 
         positionStreamer = new NTStreamer<>("intake", "position");
@@ -47,10 +48,8 @@ public class Intake {
         setpointStreamer = new NTStreamer<>("intake", "setpoint");
         outputStreamer = new NTStreamer<>("intake", "output");
 
-        targetPosition = Target.STOWED_BACK;
-
         zeroSensor();
-        setTargetPosition(0.0);
+        setTargetPosition(Target.STOWED_BACK);
     }
 
     public void drive(double percent) {
@@ -64,16 +63,12 @@ public class Intake {
     }
 
     public void setTargetPosition(double targetPosition) {
-        System.out.println("target position" + (targetPosition + this.targetPosition));
-        if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
+        if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
+            resetPID();
             this.targetPosition = targetPosition;
-            System.out.println("Profiling intake from " + getPosition() + " to " + targetPosition);
-            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);
+            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.4, 2.0, 0.8);
             profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
             profileExecutor.initialize();
-            System.out.println("Hey");
-        } else {
-            System.out.println("Wat " + this.targetPosition);
         }
     }
 
@@ -108,8 +103,11 @@ public class Intake {
 
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
+        double angle = Utils.lerp(getPosition(), 0.29, 0.62, 0.5 * Math.PI, Math.PI);
+        double gravityCompensation = 0.075 * Math.cos(angle);
         setpointStreamer.send(sp.getPosition());
-        pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward, kF * sp.getVelocity());
+        pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
+                gravityCompensation + (kF * sp.getVelocity()));
         outputStreamer.send(pivot.getMotorOutputPercent());
     }
 }

@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import frc.robot.Vision.Target;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
@@ -30,10 +31,18 @@ import frc.robot.subsystems.Outtake;
 import frc.robot.subsystems.Stingers;
 import frc.robot.superstructure.Pose;
 import frc.robot.superstructure.SuperStructure;
+import frc.robot.utils.ButtonDebouncer;
 
 public class Robot extends TimedRobot {
     Joystick driverJoystick;
     Joystick operatorJoystick;
+
+    ButtonDebouncer modeToggle;
+    boolean hatchMode = true;
+
+    ButtonDebouncer climbToggle;
+    boolean climbMode = false;
+
     Vision vision;
 
     Drivetrain drivetrain;
@@ -76,20 +85,21 @@ public class Robot extends TimedRobot {
         configCurrentLimit(shoulder);
 
         TalonSRX intakePivot = new TalonSRX(9);
-        intakePivot.setInverted(true);
-        intakePivot.setSensorPhase(true);
         VictorSPX intakeFollower = new VictorSPX(10);
         TalonSRX intakeRoller = new TalonSRX(11);
         configureFollowerMotor(intakeFollower, intakePivot);
         intakeFollower.setInverted(InvertType.OpposeMaster);
         intake = new Intake(intakePivot, intakeRoller);
 
-        stingers = new Stingers(new DoubleSolenoid(4, 5));
+        stingers = new Stingers(new DoubleSolenoid(4, 5), new DoubleSolenoid(6, 7));
 
         superStructure = new SuperStructure(elevator, arm, intake, stingers, navx);
 
         driverJoystick = new Joystick(0);
         operatorJoystick = new Joystick(1);
+
+        modeToggle = new ButtonDebouncer(operatorJoystick, 9);
+        climbToggle = new ButtonDebouncer(operatorJoystick, 10);
 
         vision = new Vision(this::isEnabled);
         vision.start();
@@ -100,7 +110,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
-        target = SuperStructure.Target.STARTING_CONFIG;
+        target = superStructure.getPose();
         superStructure.initialize(target);
     }
 
@@ -108,52 +118,98 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
-        // if (operatorJoystick.getRawButton(4)) {
-        // // Y
-        // target = SuperStructure.Target.HATCH_TOP;
-        // // elevator = 0.9;
-        // // arm = Arm.Target.UP_FLAT;
-        // } else if (operatorJoystick.getRawButton(2)) {
-        // // B
-        // target = SuperStructure.Target.HATCH_M_BACK;
-        // // elevator = 0.08;
-        // // arm = Arm.Target.UP_FLAT;
-        // } else if (operatorJoystick.getRawButton(1)) {
-        // // A
-        // target = SuperStructure.Target.HATCH_BOTTOM;
-        // // elevator = 0.0;
-        // // arm = Arm.Target.DOWN_FLAT;
-        // } else if (operatorJoystick.getRawButton(3)) {
-        // // X
-        // target = SuperStructure.Target.HATCH_M_FRONT;
-        // // elevator = 1.1;
-        // // arm = Arm.Target.DOWN_FLAT;
-        // } else if (operatorJoystick.getRawButton(7)) {
-        // target = SuperStructure.Target.STARTING_CONFIG;
-        // }
-
-        // if (operatorJoystick.getRawButton(6)) {
-        // // right bumper
-        // manipulator.setPosition(Manipulator.State.Slack);
-        // } else if (operatorJoystick.getRawButton(5)) {
-        // // left bumper
-        // manipulator.setPosition(Manipulator.State.Extend);
-        // } else {
-        // manipulator.setPosition(Manipulator.State.Retract);
-        // }
-
-        // superStructure.setTarget(target);
-
-        if (operatorJoystick.getRawButton(1)) {
-            intake.setTargetPosition(Intake.Target.INTAKE);
-        } else if (operatorJoystick.getRawButton(4)) {
-            intake.setTargetPosition(Intake.Target.STOWED_UP);
+        if (modeToggle.get()) {
+            hatchMode = !hatchMode;
         }
 
-        intake.update();
+        if (climbToggle.get()) {
+            climbMode = !climbMode;
+        }
 
-        Target visionTarget = vision.getTarget();
-        System.out.println("Offset: " + visionTarget.offset);
+        if (hatchMode) {
+            if (operatorJoystick.getRawButton(1)) {
+                // A
+                target = SuperStructure.Target.HATCH_BOTTOM;
+                // elevator = 0.0;
+                // arm = Arm.Target.DOWN_FLAT;
+            } else if (operatorJoystick.getRawButton(2)) {
+                // B
+                target = SuperStructure.Target.HATCH_M_BACK;
+                // elevator = 0.08;
+                // arm = Arm.Target.UP_FLAT;
+            } else if (operatorJoystick.getRawButton(3)) {
+                // X
+                target = SuperStructure.Target.HATCH_M_FRONT;
+                // elevator = 1.1;
+                // arm = Arm.Target.DOWN_FLAT;
+            } else if (operatorJoystick.getRawButton(4)) {
+                // Y
+                target = SuperStructure.Target.HATCH_TOP;
+                // elevator = 0.9;
+                // arm = Arm.Target.UP_FLAT;
+            }
+
+            if (operatorJoystick.getRawButton(6)) {
+                // right bumper
+                manipulator.setPosition(Manipulator.State.Slack);
+            } else if (operatorJoystick.getRawButton(5)) {
+                // left bumper
+                manipulator.setPosition(Manipulator.State.Extend);
+            } else {
+                manipulator.setPosition(Manipulator.State.Retract);
+            }
+        } else {
+            if (operatorJoystick.getRawButton(1)) {
+                // A
+                if (operatorJoystick.getRawButton(6)) {
+                    target = SuperStructure.Target.CARGO_INTAKE;
+                } else {
+                    target = SuperStructure.Target.CARGO_BOTTOM;
+                }
+                // elevator = 0.0;
+                // arm = Arm.Target.DOWN_FLAT;
+            } else if (operatorJoystick.getRawButton(2)) {
+                // B
+                target = SuperStructure.Target.CARGO_M_BACK;
+                // elevator = 0.08;
+                // arm = Arm.Target.UP_FLAT;
+            } else if (operatorJoystick.getRawButton(3)) {
+                // X
+                target = SuperStructure.Target.CARGO_M_FRONT;
+                // elevator = 1.1;
+                // arm = Arm.Target.DOWN_FLAT;
+            } else if (operatorJoystick.getRawButton(4)) {
+                // Y
+                target = SuperStructure.Target.CARGO_TOP;
+                // elevator = 0.9;
+                // arm = Arm.Target.UP_FLAT;
+            }
+
+            if (operatorJoystick.getRawButton(6)) {
+                // right bumper
+                intake.setRoller(0.6);
+                outtake.drive(0.0);
+            } else if (operatorJoystick.getRawButton(5)) {
+                // left bumper
+                outtake.drive(0.3);
+                intake.setRoller(0.0);
+            } else {
+                outtake.drive(0.0);
+                intake.setRoller(0.0);
+            }
+        }
+
+        if (climbMode) {
+            target = SuperStructure.Target.PRE_CLIMB;
+        }
+
+        if (operatorJoystick.getRawButton(7)) {
+            target = SuperStructure.Target.STARTING_CONFIG;
+        }
+
+        superStructure.setTarget(target);
+
+        // Target visionTarget = vision.getTarget();
     }
 
     @Override
@@ -163,6 +219,8 @@ public class Robot extends TimedRobot {
 
         // arm.updateSensor();
         // arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
+
+        arm.drive(0.0);
 
         intake.updateSensor();
         intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
@@ -179,6 +237,11 @@ public class Robot extends TimedRobot {
             intake.setRoller(0.0);
         }
 
+        if (operatorJoystick.getRawButton(2)) {
+            stingers.fire();
+        } else {
+            stingers.retract();
+        }
     }
 
     @Override

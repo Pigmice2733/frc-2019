@@ -18,11 +18,11 @@ public class Pose {
     }
 
     public Pose setArmMin(double armPosition) {
-        return setArm(Math.max(armPosition, intake));
+        return setArm(Math.max(armPosition, arm));
     }
 
     public Pose setArmMax(double armPosition) {
-        return setArm(Math.min(armPosition, intake));
+        return setArm(Math.min(armPosition, arm));
     }
 
     public Pose setElevator(double elevatorPosition) {

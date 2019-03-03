@@ -2,6 +2,7 @@ package frc.robot.superstructure;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.pidf.Gains;
 import frc.robot.pidf.PIDF;
 import frc.robot.subsystems.Arm;
@@ -28,17 +29,20 @@ public class SuperStructure {
 
     private PIDF intakeBalancer;
 
-    private static final Bounds intakeCollision = new Bounds(0.1, 0.5);
+    private static final Bounds intakeCollision = new Bounds(0.115, 0.54);
 
     public static class Target {
-        public static final Pose STARTING_CONFIG = new Pose(0.1, Arm.Target.START, Intake.Target.STOWED_BACK, false);
+        public static final Pose STARTING_CONFIG = new Pose(0.138, Arm.Target.START, Intake.Target.START, false);
         public static final Pose HATCH_BOTTOM = new Pose(0.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK, false);
-        public static final Pose HATCH_M_FRONT = new Pose(1.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK, false);
+        public static final Pose HATCH_M_FRONT = new Pose(1.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK, false);
         public static final Pose HATCH_M_BACK = new Pose(0.08, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK, false);
-        public static final Pose HATCH_TOP = new Pose(0.9, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK, false);
-        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.INTAKE, false);
-        public static final Pose CARGO_MIDDLE = new Pose(1.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP, false);
-        public static final Pose CARGO_TOP = new Pose(1.1, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP, false);
+        public static final Pose HATCH_TOP = new Pose(0.875, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK, false);
+        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP, false);
+        public static final Pose CARGO_M_FRONT = new Pose(1.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP, false);
+        public static final Pose CARGO_M_BACK = new Pose(0.08, Arm.Target.UP_ANGLE, Intake.Target.STOWED_UP, false);
+        public static final Pose CARGO_TOP = new Pose(1.0, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP, false);
+        public static final Pose CARGO_INTAKE = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.INTAKE, false);
+        public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP, false);
     }
 
     public SuperStructure(Elevator elevator, Arm arm, Intake intake, Stingers stingers, AHRS navx) {
@@ -56,7 +60,7 @@ public class SuperStructure {
     public void initialize(Pose target) {
         elevator.resetPID();
         arm.resetPID();
-        // intake.resetPID();
+        intake.resetPID();
 
         setTarget(target);
     }
@@ -71,32 +75,12 @@ public class SuperStructure {
         elevator.update();
         arm.update();
 
-        // if (target.stingers) {
-        // if (currentPose.intake > 0.5) {
-        // if (!stingers.isExtending()) {
-        // intakeBalancer.initialize(0.0, Timer.getFPGATimestamp(), 0.0);
-        // }
-        // stingers.fire();
-
-        // double intakeOutput = intakeBalancer.calculateOutput(navx.getPitch(), 0.0,
-        // Timer.getFPGATimestamp());
-        // if (currentPose.intake < 0.05 || currentPose.intake > 0.95) {
-        // intake.drive(0.0);
-        // } else {
-        // intake.drive(intakeOutput);
-        // }
-        // } else {
-        // stingers.retract();
-        // }
-        // } else {
-        // intake.setTargetPosition(currentTarget.intake);
-        // intake.update();
-        // stingers.retract();
-        // }
+        intake.setTargetPosition(currentTarget.intake);
+        intake.update();
     }
 
     public Pose getPose() {
-        return new Pose(elevator.getPosition(), arm.getPosition(), 0.0, false);
+        return new Pose(elevator.getPosition(), arm.getPosition(), intake.getPosition(), false);
     }
 
     /**
@@ -112,6 +96,42 @@ public class SuperStructure {
      */
     public Pose getIntermediatePose(Pose current, Pose target) {
 
+        // Prevent ball intake from swinging through bottom of arm
+        if (crosses(current.intake, target.intake, intakeCollision)) {
+            // If ball intake is vertical and over top of hatch intake, lower ball intake
+            if (intakeCollision.contains(current.intake) && (current.elevator > 0.12 || current.arm > 0.05)
+                    && current.elevator < 0.6) {
+                return current.setIntakeMin(0.56);
+                // If ball intake ends vertical, raise elevator, lower intake, get elevator to
+                // right spot, then
+                // let everything go to final intake (which raises intake to vertical)
+            } else if (intakeCollision.contains(target.intake)) {
+                if (current.intake < 0.54 && (current.elevator > 0.14 || current.intake < 0.3)) {
+                    // raise elevator
+                    if (current.elevator < 0.6) {
+                        return current.setElevatorMin(0.65).setArmMin(Arm.Target.DOWN_ANGLE);
+                        // keep elevator up, lower intake
+                    } else {
+                        return current.setElevatorMin(0.65).setArmMin(Arm.Target.DOWN_ANGLE).setIntakeMin(0.56);
+                    }
+                    // move elevator to right spot while keeping intake down
+                } else if (current.elevator > 0.13 || current.arm > 0.08) {
+                    return target.setIntakeMin(0.56);
+                    // move everything to final target
+                } else {
+                    return target;
+                }
+                // If ball intake isn't over hatch intake, raise elevator first then move to
+                // final location
+            } else {
+                if (current.elevator < 0.6) {
+                    return current.setElevatorMin(0.65).setArmMin(Arm.Target.DOWN_ANGLE);
+                } else {
+                    return target.setElevatorMin(0.65).setArmMin(Arm.Target.DOWN_ANGLE);
+                }
+            }
+        }
+
         // Prevent arm scoop from hitting battery going to/from starting config
         if ((current.arm < 0.05 || target.arm < 0.05)) {
             // If arm is close to start, and start is the target, let elevator down
@@ -123,15 +143,6 @@ public class SuperStructure {
                 // Maintained raised elevator throughout move until not over battery
             } else {
                 return target.setElevatorMin(0.25);
-            }
-        }
-
-        // Prevent ball intake from swinging through bottom of arm
-        if (crosses(current.intake, target.intake, intakeCollision)) {
-            if (current.elevator < 0.6) {
-                return current.setElevatorMin(0.8).setArmMin(0.1);
-            } else {
-                return target.setElevatorMin(0.8).setArmMin(0.1);
             }
         }
 
