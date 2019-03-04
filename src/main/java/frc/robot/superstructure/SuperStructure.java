@@ -34,12 +34,12 @@ public class SuperStructure {
     public static class Target {
         public static final Pose STARTING_CONFIG = new Pose(0.138, Arm.Target.START, Intake.Target.START, false);
         public static final Pose HATCH_BOTTOM = new Pose(0.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK, false);
-        public static final Pose HATCH_M_FRONT = new Pose(1.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK, false);
-        public static final Pose HATCH_M_BACK = new Pose(0.08, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK, false);
+        public static final Pose HATCH_M_FRONT = new Pose(1.05, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK, false);
+        public static final Pose HATCH_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_BACK, false);
         public static final Pose HATCH_TOP = new Pose(0.875, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK, false);
         public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP, false);
         public static final Pose CARGO_M_FRONT = new Pose(1.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP, false);
-        public static final Pose CARGO_M_BACK = new Pose(0.08, Arm.Target.UP_ANGLE, Intake.Target.STOWED_UP, false);
+        public static final Pose CARGO_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_UP, false);
         public static final Pose CARGO_TOP = new Pose(1.0, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP, false);
         public static final Pose CARGO_INTAKE = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.INTAKE, false);
         public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP, false);
@@ -133,7 +133,7 @@ public class SuperStructure {
         }
 
         // Prevent arm scoop from hitting battery going to/from starting config
-        if ((current.arm < 0.05 || target.arm < 0.05)) {
+        if ((current.arm < 0.01 || target.arm < 0.01)) {
             // If arm is close to start, and start is the target, let elevator down
             if (current.arm < 0.0 && Utils.almostEquals(target.arm, Arm.Target.START)) {
                 return target;

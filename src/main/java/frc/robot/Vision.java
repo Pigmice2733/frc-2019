@@ -58,9 +58,10 @@ public class Vision {
             while (!initialized && !Thread.interrupted() && enabledStatus.get()) {
                 Timer.delay(0.2);
                 initPort();
+                System.out.println("disconnected");
             }
 
-            while (Thread.interrupted() && initialized && enabledStatus.get()) {
+            while (!Thread.interrupted() && initialized && enabledStatus.get()) {
                 try {
                     parseInput(remainingInput + port.readString());
                 } catch (Exception e) {
@@ -69,6 +70,8 @@ public class Vision {
                 }
                 Timer.delay(0.034);
             }
+
+            System.out.println("disconnected");
         });
     }
 
@@ -88,7 +91,7 @@ public class Vision {
 
     private void initPort() {
         try {
-            port = new SerialPort(9600, SerialPort.Port.kUSB);
+            port = new SerialPort(9600, SerialPort.Port.kUSB1);
             initialized = true;
         } catch (Exception e) {
             initialized = false;

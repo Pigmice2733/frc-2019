@@ -16,11 +16,12 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.hal.PDPJNI;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import frc.robot.Vision.Target;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
@@ -48,6 +49,8 @@ public class Robot extends TimedRobot {
     Drivetrain drivetrain;
     Stingers stingers;
     AHRS navx;
+
+    PowerDistributionPanel pdp;
 
     Elevator elevator;
     Arm arm;
@@ -91,7 +94,7 @@ public class Robot extends TimedRobot {
         intakeFollower.setInverted(InvertType.OpposeMaster);
         intake = new Intake(intakePivot, intakeRoller, navx);
 
-        stingers = new Stingers(new DoubleSolenoid(4, 5), new DoubleSolenoid(6, 7));
+        stingers = new Stingers(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5));
 
         superStructure = new SuperStructure(elevator, arm, intake, stingers, navx);
 
@@ -102,16 +105,16 @@ public class Robot extends TimedRobot {
         climbToggle = new ButtonDebouncer(operatorJoystick, 10);
 
         vision = new Vision(this::isEnabled);
-        vision.start();
 
-        // CameraServer server = CameraServer.getInstance();
-        // server.startAutomaticCapture("Driver Cam", 0);
+        CameraServer server = CameraServer.getInstance();
+        server.startAutomaticCapture("Driver Cam", 0);
     }
 
     @Override
     public void teleopInit() {
         target = superStructure.getPose();
         superStructure.initialize(target);
+        vision.start();
     }
 
     @Override
@@ -213,14 +216,31 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void testInit() {
+        vision.start();
+    }
+
+    @Override
     public void testPeriodic() {
-        drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+        if (driverJoystick.getRawButton(1)) {
+            Target visionTarget = vision.getTarget();
+            if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
+                drivetrain.arcadeDrive(-driverJoystick.getY(), 0.2 * visionTarget.offset);
+            }
+        } else {
+            drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+        }
         intake.setRoller(-driverJoystick.getY());
 
         if (operatorJoystick.getRawButton(3)) {
+            if (!climbMode) {
+                climbMode = true;
+                intake.startBalancing();
+            }
             intake.levelRobot();
         } else {
-            intake.setPivotPercent(0);
+            climbMode = false;
+            intake.drive(0);
         }
 
         elevator.updateSensor();
@@ -240,17 +260,25 @@ public class Robot extends TimedRobot {
         // intake.setRoller(0.0);
         // }
 
-        // if (operatorJoystick.getRawButton(4)) {
-        // intake.setRoller(0.6);
-        // } else {
-        // intake.setRoller(0.0);
-        // }
+        if (operatorJoystick.getRawButton(6)) {
+            intake.setRoller(1.0);
+        } else {
+            intake.setRoller(0.0);
+        }
 
         if (operatorJoystick.getRawButton(2)) {
             stingers.extend();
-        } else {
+        } else if (operatorJoystick.getRawButton(5)) {
             stingers.retract();
+        } else {
+            stingers.stop();
         }
+
+    }
+
+    @Override
+    public void disabledInit() {
+        vision.stop();
     }
 
     @Override
@@ -258,8 +286,6 @@ public class Robot extends TimedRobot {
         elevator.updateSensor();
         arm.updateSensor();
         intake.updateSensor();
-
-        Target target = vision.getTarget();
     }
 
     private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {

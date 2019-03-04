@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.robot.motion.Setpoint;
 import frc.robot.motion.StaticProfile;
 import frc.robot.motion.execution.StaticProfileExecutor;
+import frc.robot.pidf.Gains;
+import frc.robot.pidf.PIDF;
 import frc.robot.utils.Bounds;
 import frc.robot.utils.NTStreamer;
 import frc.robot.utils.Utils;
@@ -37,6 +39,8 @@ public class Intake {
 
     private double kF = 0.75;
 
+    private PIDF balancer;
+
     public Intake(TalonSRX pivotMotor, TalonSRX rollerMotor, AHRS navx) {
         pivot = pivotMotor;
         roller = rollerMotor;
@@ -53,6 +57,10 @@ public class Intake {
 
         zeroSensor();
         setTargetPosition(Target.STOWED_BACK);
+
+        Gains gains = new Gains(0.1, 0.0, 0.0);
+        Bounds outputBounds = new Bounds(-0.4, 0.4);
+        balancer = new PIDF(gains, outputBounds);
     }
 
     public void drive(double percent) {
@@ -65,13 +73,12 @@ public class Intake {
         roller.set(ControlMode.PercentOutput, percent);
     }
 
-    public void levelRobot() {
-        pivot.set(ControlMode.PercentOutput, 0.1 * (navx.getRoll() + 3));
-        System.out.println(navx.getRoll() + pivot.getMotorOutputPercent());
+    public void startBalancing() {
+        balancer.initialize(navx.getRoll(), Timer.getFPGATimestamp(), 0.0);
     }
 
-    public void setPivotPercent(double percent) {
-        pivot.set(ControlMode.PercentOutput, percent);
+    public void levelRobot() {
+        pivot.set(ControlMode.PercentOutput, -balancer.calculateOutput(navx.getRoll(), -3, Timer.getFPGATimestamp()));
     }
 
     public void setTargetPosition(double targetPosition) {
