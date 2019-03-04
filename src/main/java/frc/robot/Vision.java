@@ -58,7 +58,6 @@ public class Vision {
             while (!initialized && !Thread.interrupted() && enabledStatus.get()) {
                 Timer.delay(0.2);
                 initPort();
-                System.out.println("disconnected");
             }
 
             while (!Thread.interrupted() && initialized && enabledStatus.get()) {
@@ -70,8 +69,6 @@ public class Vision {
                 }
                 Timer.delay(0.034);
             }
-
-            System.out.println("disconnected");
         });
     }
 

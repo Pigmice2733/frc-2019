@@ -2,9 +2,6 @@ package frc.robot.superstructure;
 
 import com.kauailabs.navx.frc.AHRS;
 
-import edu.wpi.first.wpilibj.Timer;
-import frc.robot.pidf.Gains;
-import frc.robot.pidf.PIDF;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Elevator;
@@ -13,48 +10,30 @@ import frc.robot.utils.Bounds;
 import frc.robot.utils.Utils;
 
 public class SuperStructure {
-    // // end position of robot
-    // private Pose finalTarget;
-    // // current intermediate position the robot is trying to get to
-    // private Pose currentTarget;
-    // // current robot pose
-    // private Pose currentPose;
-
     private Elevator elevator;
     private Arm arm;
     private Intake intake;
-    private Stingers stingers;
-
-    private AHRS navx;
-
-    private PIDF intakeBalancer;
 
     private static final Bounds intakeCollision = new Bounds(0.115, 0.54);
 
     public static class Target {
-        public static final Pose STARTING_CONFIG = new Pose(0.138, Arm.Target.START, Intake.Target.START, false);
-        public static final Pose HATCH_BOTTOM = new Pose(0.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK, false);
-        public static final Pose HATCH_M_FRONT = new Pose(1.05, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK, false);
-        public static final Pose HATCH_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_BACK, false);
-        public static final Pose HATCH_TOP = new Pose(0.875, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK, false);
-        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP, false);
-        public static final Pose CARGO_M_FRONT = new Pose(1.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP, false);
-        public static final Pose CARGO_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_UP, false);
-        public static final Pose CARGO_TOP = new Pose(1.0, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP, false);
-        public static final Pose CARGO_INTAKE = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.INTAKE, false);
-        public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP, false);
+        public static final Pose STARTING_CONFIG = new Pose(0.138, Arm.Target.START, Intake.Target.START);
+        public static final Pose HATCH_BOTTOM = new Pose(0.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_M_FRONT = new Pose(1.05, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_TOP = new Pose(0.875, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_M_FRONT = new Pose(1.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_TOP = new Pose(1.0, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_INTAKE = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.INTAKE);
+        public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP);
     }
 
     public SuperStructure(Elevator elevator, Arm arm, Intake intake, Stingers stingers, AHRS navx) {
         this.elevator = elevator;
         this.arm = arm;
         this.intake = intake;
-
-        this.navx = navx;
-
-        Gains balancerGains = new Gains(0.001, 0.0, 0.0);
-        Bounds balancerOutput = new Bounds(-0.25, 0.25);
-        intakeBalancer = new PIDF(balancerGains, balancerOutput);
     }
 
     public void initialize(Pose target) {
@@ -80,7 +59,7 @@ public class SuperStructure {
     }
 
     public Pose getPose() {
-        return new Pose(elevator.getPosition(), arm.getPosition(), intake.getPosition(), false);
+        return new Pose(elevator.getPosition(), arm.getPosition(), intake.getPosition());
     }
 
     /**

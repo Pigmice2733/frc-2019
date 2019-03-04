@@ -63,10 +63,13 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
+        // Gyro
         navx = new AHRS(SPI.Port.kMXP);
 
+        // Drivetrain
         configureDrivetrain(3, 1, 4, 2);
 
+        // Elevator
         TalonSRX elevatorWinch = new TalonSRX(5);
         TalonSRX elevatorFollower = new TalonSRX(6);
         elevatorWinch.setSensorPhase(true);
@@ -78,15 +81,18 @@ public class Robot extends TimedRobot {
 
         elevator = new Elevator(elevatorWinch);
 
+        // Manipulator + Ball outtake
         manipulator = new Manipulator(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
         outtake = new Outtake(new VictorSPX(8));
 
+        // Arm
         TalonSRX shoulder = new TalonSRX(7);
         shoulder.setSensorPhase(true);
         arm = new Arm(shoulder);
 
         configCurrentLimit(shoulder);
 
+        // Ball intake
         TalonSRX intakePivot = new TalonSRX(9);
         VictorSPX intakeFollower = new VictorSPX(10);
         TalonSRX intakeRoller = new TalonSRX(11);
@@ -94,6 +100,7 @@ public class Robot extends TimedRobot {
         intakeFollower.setInverted(InvertType.OpposeMaster);
         intake = new Intake(intakePivot, intakeRoller, navx);
 
+        // Stinger pistons
         stingers = new Stingers(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5));
 
         superStructure = new SuperStructure(elevator, arm, intake, stingers, navx);
@@ -130,28 +137,6 @@ public class Robot extends TimedRobot {
         }
 
         if (hatchMode) {
-            if (operatorJoystick.getRawButton(1)) {
-                // A
-                target = SuperStructure.Target.HATCH_BOTTOM;
-                // elevator = 0.0;
-                // arm = Arm.Target.DOWN_FLAT;
-            } else if (operatorJoystick.getRawButton(2)) {
-                // B
-                target = SuperStructure.Target.HATCH_M_BACK;
-                // elevator = 0.08;
-                // arm = Arm.Target.UP_FLAT;
-            } else if (operatorJoystick.getRawButton(3)) {
-                // X
-                target = SuperStructure.Target.HATCH_M_FRONT;
-                // elevator = 1.1;
-                // arm = Arm.Target.DOWN_FLAT;
-            } else if (operatorJoystick.getRawButton(4)) {
-                // Y
-                target = SuperStructure.Target.HATCH_TOP;
-                // elevator = 0.9;
-                // arm = Arm.Target.UP_FLAT;
-            }
-
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
                 manipulator.setPosition(Manipulator.State.Slack);
@@ -162,32 +147,6 @@ public class Robot extends TimedRobot {
                 manipulator.setPosition(Manipulator.State.Retract);
             }
         } else {
-            if (operatorJoystick.getRawButton(1)) {
-                // A
-                if (operatorJoystick.getRawButton(6)) {
-                    target = SuperStructure.Target.CARGO_INTAKE;
-                } else {
-                    target = SuperStructure.Target.CARGO_BOTTOM;
-                }
-                // elevator = 0.0;
-                // arm = Arm.Target.DOWN_FLAT;
-            } else if (operatorJoystick.getRawButton(2)) {
-                // B
-                target = SuperStructure.Target.CARGO_M_BACK;
-                // elevator = 0.08;
-                // arm = Arm.Target.UP_FLAT;
-            } else if (operatorJoystick.getRawButton(3)) {
-                // X
-                target = SuperStructure.Target.CARGO_M_FRONT;
-                // elevator = 1.1;
-                // arm = Arm.Target.DOWN_FLAT;
-            } else if (operatorJoystick.getRawButton(4)) {
-                // Y
-                target = SuperStructure.Target.CARGO_TOP;
-                // elevator = 0.9;
-                // arm = Arm.Target.UP_FLAT;
-            }
-
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
                 intake.setRoller(0.6);
@@ -202,17 +161,10 @@ public class Robot extends TimedRobot {
             }
         }
 
-        if (climbMode) {
-            target = SuperStructure.Target.PRE_CLIMB;
+        Pose target = findSetpoint();
+        if (target != null) {
+            superStructure.setTarget(target);
         }
-
-        if (operatorJoystick.getRawButton(7)) {
-            target = SuperStructure.Target.STARTING_CONFIG;
-        }
-
-        superStructure.setTarget(target);
-
-        // Target visionTarget = vision.getTarget();
     }
 
     @Override
@@ -286,6 +238,49 @@ public class Robot extends TimedRobot {
         elevator.updateSensor();
         arm.updateSensor();
         intake.updateSensor();
+    }
+
+    private Pose findSetpoint() {
+        if (hatchMode) {
+            if (operatorJoystick.getRawButton(1)) {
+                // A
+                return SuperStructure.Target.HATCH_BOTTOM;
+            } else if (operatorJoystick.getRawButton(2)) {
+                // B
+                return SuperStructure.Target.HATCH_M_BACK;
+            } else if (operatorJoystick.getRawButton(3)) {
+                // X
+                return SuperStructure.Target.HATCH_M_FRONT;
+            } else if (operatorJoystick.getRawButton(4)) {
+                // Y
+                return SuperStructure.Target.HATCH_TOP;
+            }
+        } else {
+            if (operatorJoystick.getRawButton(1)) {
+                // A
+                if (operatorJoystick.getRawButton(6)) {
+                    return SuperStructure.Target.CARGO_INTAKE;
+                } else {
+                    return SuperStructure.Target.CARGO_BOTTOM;
+                }
+            } else if (operatorJoystick.getRawButton(2)) {
+                // B
+                return SuperStructure.Target.CARGO_M_BACK;
+            } else if (operatorJoystick.getRawButton(3)) {
+                // X
+                return SuperStructure.Target.CARGO_M_FRONT;
+            } else if (operatorJoystick.getRawButton(4)) {
+                // Y
+                return SuperStructure.Target.CARGO_TOP;
+            }
+
+        }
+
+        if (operatorJoystick.getRawButton(7)) {
+            return SuperStructure.Target.STARTING_CONFIG;
+        }
+
+        return null;
     }
 
     private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {

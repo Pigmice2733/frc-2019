@@ -4,17 +4,15 @@ public class Pose {
     public final double elevator;
     public final double arm;
     public final double intake;
-    public final boolean stingers;
 
-    Pose(double elevator, double arm, double intake, boolean stingers) {
+    Pose(double elevator, double arm, double intake) {
         this.elevator = elevator;
         this.arm = arm;
         this.intake = intake;
-        this.stingers = stingers;
     }
 
     public Pose setArm(double armPosition) {
-        return new Pose(elevator, armPosition, intake, stingers);
+        return new Pose(elevator, armPosition, intake);
     }
 
     public Pose setArmMin(double armPosition) {
@@ -26,7 +24,7 @@ public class Pose {
     }
 
     public Pose setElevator(double elevatorPosition) {
-        return new Pose(elevatorPosition, arm, intake, stingers);
+        return new Pose(elevatorPosition, arm, intake);
     }
 
     public Pose setElevatorMin(double elevatorPosition) {
@@ -38,7 +36,7 @@ public class Pose {
     }
 
     public Pose setIntake(double intakePosition) {
-        return new Pose(elevator, arm, intakePosition, stingers);
+        return new Pose(elevator, arm, intakePosition);
     }
 
     public Pose setIntakeMax(double intakePosition) {

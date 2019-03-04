@@ -17,8 +17,6 @@ public class Elevator {
 
     private Double targetPosition;
 
-    // physical max: 30100
-    // physical min: 0
     private Bounds sensorBounds = new Bounds(0, 30400.0);
 
     private StaticProfileExecutor profileExecutor;
@@ -33,8 +31,6 @@ public class Elevator {
     public Elevator(TalonSRX winchMotor) {
         winch = winchMotor;
         winchMotor.config_kP(0, 0.2, 10);
-        // winchMotor.config_kP(0, 0.0, 10);
-        // winchMotor.config_kI(0, 0.000009, 10);
         winchMotor.config_kI(0, 0.00000, 10);
         winchMotor.config_kD(0, 0.0, 10);
         winchMotor.config_kF(0, 0.0, 10);
@@ -59,12 +55,8 @@ public class Elevator {
             resetPID();
             StaticProfile profile;
             if (this.targetPosition != null && this.targetPosition > targetPosition) {
-                // kF = 0.58;
-                // Down
                 profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.3, 0.9, 0.9);
             } else {
-                // kF = 0.79;
-                // Up
                 profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.3, 0.9, 0.9);
             }
             this.targetPosition = targetPosition;
