@@ -43,7 +43,7 @@ public class Robot extends TimedRobot {
     ButtonDebouncer climbToggle;
     boolean climbMode = false;
 
-    Vision vision;
+    // Vision vision;
 
     Drivetrain drivetrain;
     Stingers stingers;
@@ -110,16 +110,16 @@ public class Robot extends TimedRobot {
         modeToggle = new ButtonDebouncer(operatorJoystick, 9);
         climbToggle = new ButtonDebouncer(operatorJoystick, 10);
 
-        vision = new Vision(this::isEnabled);
+        // vision = new Vision(this::isEnabled);
 
-        // CameraServer server = CameraServer.getInstance();
-        // server.startAutomaticCapture("Driver Cam", 0);
+        CameraServer server = CameraServer.getInstance();
+        server.startAutomaticCapture("Driver Cam", 0);
     }
 
     @Override
     public void teleopInit() {
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
-        vision.start();
+        // vision.start();
     }
 
     @Override
@@ -198,25 +198,9 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void testInit() {
-        vision.start();
-    }
-
-    @Override
     public void testPeriodic() {
-        Target visionTarget = vision.getTarget();
+        drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
-        System.out.println(visionTarget.offset);
-
-        if (driverJoystick.getRawButton(1)) {
-            if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
-                drivetrain.arcadeDrive(-driverJoystick.getY(), 0.2 * visionTarget.offset);
-            } else {
-                System.out.println("Not connected/visible");
-            }
-        } else {
-            drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
-        }
         intake.setRoller(-driverJoystick.getY());
 
         if (operatorJoystick.getRawButton(3)) {
@@ -261,11 +245,6 @@ public class Robot extends TimedRobot {
         } else {
             stingers.stop();
         }
-    }
-
-    @Override
-    public void disabledInit() {
-        vision.stop();
     }
 
     @Override
