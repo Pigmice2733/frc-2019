@@ -89,7 +89,7 @@ public class Elevator {
     }
 
     public void update() {
-        updateSensor();
+        // updateSensor();
 
         profileExecutor.update();
     }

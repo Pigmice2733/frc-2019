@@ -97,7 +97,8 @@ public class Intake {
 
     public double getPosition() {
         double raw = (double) pivot.getSelectedSensorPosition();
-        return Utils.lerp(raw, sensorBounds.min(), sensorBounds.max(), 0.0, 1.0);
+        currentPosition = Utils.lerp(raw, sensorBounds.min(), sensorBounds.max(), 0.0, 1.0);
+        return currentPosition;
     }
 
     public double getVelocity() {
@@ -117,7 +118,7 @@ public class Intake {
     }
 
     public void update() {
-        updateSensor();
+        // updateSensor();
 
         profileExecutor.update();
     }
