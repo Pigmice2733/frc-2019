@@ -285,6 +285,10 @@ public class Robot extends TimedRobot {
             }
         }
 
+        if (operatorJoystick.getRawButton(7)) {
+            return SuperStructure.Target.STARTING_CONFIG;
+        }
+
         if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM)
                 || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE)) {
             if (operatorJoystick.getRawButton(6)) {
@@ -292,10 +296,6 @@ public class Robot extends TimedRobot {
             } else {
                 return SuperStructure.Target.CARGO_BOTTOM;
             }
-        }
-
-        if (operatorJoystick.getRawButton(7)) {
-            return SuperStructure.Target.STARTING_CONFIG;
         }
 
         return null;
