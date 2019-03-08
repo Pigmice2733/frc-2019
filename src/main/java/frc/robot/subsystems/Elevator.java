@@ -17,6 +17,8 @@ public class Elevator {
 
     private Double targetPosition;
 
+    private Double currentPosition;
+
     private Bounds sensorBounds = new Bounds(0, 30400.0);
 
     private StaticProfileExecutor profileExecutor;
@@ -25,13 +27,13 @@ public class Elevator {
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
 
-    private double kF = 0.7;
+    private double kF = 0.75;
     private double gravityCompensation = 0.055;
 
     public Elevator(TalonSRX winchMotor) {
         winch = winchMotor;
         winchMotor.config_kP(0, 0.2, 10);
-        winchMotor.config_kI(0, 0.00000, 10);
+        winchMotor.config_kI(0, 0.0, 10);
         winchMotor.config_kD(0, 0.0, 10);
         winchMotor.config_kF(0, 0.0, 10);
         winchMotor.configNeutralDeadband(0.005, 10);
@@ -76,11 +78,13 @@ public class Elevator {
     }
 
     public void zeroSensor() {
+        currentPosition = 0.138;
         winch.setSelectedSensorPosition((int) Utils.lerp(0.138, 0, 1.0, sensorBounds.min(), sensorBounds.max()));
     }
 
     public void updateSensor() {
-        positionStreamer.send(getPosition());
+        currentPosition = getPosition();
+        positionStreamer.send(currentPosition);
         targetStreamer.send(this.targetPosition);
     }
 

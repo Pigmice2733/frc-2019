@@ -16,7 +16,6 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.hal.PDPJNI;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -72,8 +71,8 @@ public class Robot extends TimedRobot {
         // Elevator
         TalonSRX elevatorWinch = new TalonSRX(5);
         TalonSRX elevatorFollower = new TalonSRX(6);
-        elevatorWinch.setSensorPhase(true);
-        elevatorWinch.setInverted(true);
+        elevatorWinch.setSensorPhase(false);
+        elevatorWinch.setInverted(false);
         configureFollowerMotor(elevatorFollower, elevatorWinch);
 
         configCurrentLimit(elevatorWinch);
@@ -82,7 +81,7 @@ public class Robot extends TimedRobot {
         elevator = new Elevator(elevatorWinch);
 
         // Manipulator + Ball outtake
-        manipulator = new Manipulator(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
+        manipulator = new Manipulator(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5));
         outtake = new Outtake(new VictorSPX(8));
 
         // Arm
@@ -101,7 +100,7 @@ public class Robot extends TimedRobot {
         intake = new Intake(intakePivot, intakeRoller, navx);
 
         // Stinger pistons
-        stingers = new Stingers(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5));
+        stingers = new Stingers(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
 
         superStructure = new SuperStructure(elevator, arm, intake, stingers, navx);
 
@@ -113,27 +112,32 @@ public class Robot extends TimedRobot {
 
         vision = new Vision(this::isEnabled);
 
-        CameraServer server = CameraServer.getInstance();
-        server.startAutomaticCapture("Driver Cam", 0);
+        // CameraServer server = CameraServer.getInstance();
+        // server.startAutomaticCapture("Driver Cam", 0);
     }
 
     @Override
     public void teleopInit() {
-        target = superStructure.getPose();
-        superStructure.initialize(target);
+        superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
         vision.start();
     }
 
     @Override
     public void teleopPeriodic() {
-        drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+        // if (driverJoystick.getRawButton(1)) {
+        // Target visionTarget = vision.getTarget();
+
+        // if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
+        // drivetrain.arcadeDrive(-driverJoystick.getY(), 0.005 * visionTarget.offset);
+        // } else {
+        // System.out.println("Not connected/visible");
+        // }
+        // } else {
+        // drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+        // }
 
         if (modeToggle.get()) {
             hatchMode = !hatchMode;
-        }
-
-        if (climbToggle.get()) {
-            climbMode = !climbMode;
         }
 
         if (hatchMode) {
@@ -146,25 +150,51 @@ public class Robot extends TimedRobot {
             } else {
                 manipulator.setPosition(Manipulator.State.Retract);
             }
+            outtake.drive(0.0);
         } else {
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
                 intake.setRoller(0.6);
-                outtake.drive(0.0);
+                outtake.drive(-0.4);
             } else if (operatorJoystick.getRawButton(5)) {
                 // left bumper
-                outtake.drive(0.3);
+                outtake.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                outtake.drive(0.0);
+                outtake.drive(-0.20);
                 intake.setRoller(0.0);
             }
         }
 
         Pose target = findSetpoint();
         if (target != null) {
-            superStructure.setTarget(target);
+            superStructure.target(target);
+        } else {
+            superStructure.update();
         }
+
+        // if (climbToggle.get()) {
+        // climbMode = !climbMode;
+        // if (climbMode) {
+        // intake.startBalancing();
+        // }
+        // }
+
+        // if (climbMode) {
+        // intake.levelRobot();
+
+        // if (operatorJoystick.getRawButton(3)) {
+        // stingers.extend();
+        // } else if (operatorJoystick.getRawButton(4)) {
+        // stingers.retract();
+        // } else {
+        // stingers.stop();
+        // }
+
+        // intake.setRoller(-operatorJoystick.getY());
+        // } else {
+        // stingers.retract();
+        // }
     }
 
     @Override
@@ -174,10 +204,15 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testPeriodic() {
+        Target visionTarget = vision.getTarget();
+
+        System.out.println(visionTarget.offset);
+
         if (driverJoystick.getRawButton(1)) {
-            Target visionTarget = vision.getTarget();
             if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
                 drivetrain.arcadeDrive(-driverJoystick.getY(), 0.2 * visionTarget.offset);
+            } else {
+                System.out.println("Not connected/visible");
             }
         } else {
             drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
@@ -204,6 +239,7 @@ public class Robot extends TimedRobot {
         arm.drive(0.0);
 
         intake.updateSensor();
+        intake.drive(0.0);
         // intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
 
         // if (operatorJoystick.getRawButton(1)) {
@@ -225,7 +261,6 @@ public class Robot extends TimedRobot {
         } else {
             stingers.stop();
         }
-
     }
 
     @Override
@@ -258,11 +293,7 @@ public class Robot extends TimedRobot {
         } else {
             if (operatorJoystick.getRawButton(1)) {
                 // A
-                if (operatorJoystick.getRawButton(6)) {
-                    return SuperStructure.Target.CARGO_INTAKE;
-                } else {
-                    return SuperStructure.Target.CARGO_BOTTOM;
-                }
+                return SuperStructure.Target.CARGO_BOTTOM;
             } else if (operatorJoystick.getRawButton(2)) {
                 // B
                 return SuperStructure.Target.CARGO_M_BACK;
@@ -273,7 +304,15 @@ public class Robot extends TimedRobot {
                 // Y
                 return SuperStructure.Target.CARGO_TOP;
             }
+        }
 
+        if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM)
+                || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE)) {
+            if (operatorJoystick.getRawButton(6)) {
+                return SuperStructure.Target.CARGO_INTAKE;
+            } else {
+                return SuperStructure.Target.CARGO_BOTTOM;
+            }
         }
 
         if (operatorJoystick.getRawButton(7)) {

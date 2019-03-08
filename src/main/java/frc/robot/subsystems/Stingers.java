@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 public class Stingers {
     private DoubleSolenoid mode, control;
 
+    private Value modeState = Value.kReverse, controlState = Value.kForward;
+
     public Stingers(DoubleSolenoid mode, DoubleSolenoid control) {
         this.mode = mode;
         this.control = control;
@@ -16,17 +18,26 @@ public class Stingers {
     }
 
     public void extend() {
-        mode.set(Value.kReverse);
-        control.set(Value.kForward);
+        update(Value.kReverse, Value.kForward);
     }
 
     public void retract() {
-        mode.set(Value.kForward);
-        control.set(Value.kReverse);
+        update(Value.kForward, Value.kReverse);
     }
 
     public void stop() {
-        mode.set(Value.kReverse);
-        control.set(Value.kReverse);
+        update(Value.kReverse, Value.kReverse);
+    }
+
+    private void update(Value newMode, Value newControl) {
+        if (newMode != modeState) {
+            mode.set(newMode);
+            modeState = newMode;
+        }
+
+        if (newControl != controlState) {
+            control.set(newControl);
+            controlState = newControl;
+        }
     }
 }

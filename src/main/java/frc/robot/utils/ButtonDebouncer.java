@@ -1,14 +1,14 @@
 package frc.robot.utils;
 
-import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.GenericHID;
 
 public class ButtonDebouncer {
-    private Joystick joystick;
+    private GenericHID joystick;
     private int buttonNumber;
 
     private boolean previousState = false;
 
-    public ButtonDebouncer(Joystick joystick, int buttonNumber) {
+    public ButtonDebouncer(GenericHID joystick, int buttonNumber) {
         this.joystick = joystick;
         this.buttonNumber = buttonNumber;
     }

@@ -20,13 +20,15 @@ public class Intake {
         public static final double START = 0.0;
         public static final double INTAKE = 0.545;
         public static final double STOWED_UP = 0.365;
-        public static final double STOWED_BACK = 0.06;
+        public static final double STOWED_BACK = 0.03;
     }
 
     private TalonSRX pivot;
     private TalonSRX roller;
 
     private Double targetPosition;
+
+    private Double currentPosition;
 
     private Bounds sensorBounds = new Bounds(0, 2640.0);
 
@@ -58,8 +60,8 @@ public class Intake {
         zeroSensor();
         setTargetPosition(Target.STOWED_BACK);
 
-        Gains gains = new Gains(0.1, 0.0, 0.0);
-        Bounds outputBounds = new Bounds(-0.4, 0.4);
+        Gains gains = new Gains(0.15, 0.0, 0.0);
+        Bounds outputBounds = new Bounds(-0.8, 0.8);
         balancer = new PIDF(gains, outputBounds);
     }
 
@@ -78,7 +80,9 @@ public class Intake {
     }
 
     public void levelRobot() {
-        pivot.set(ControlMode.PercentOutput, -balancer.calculateOutput(navx.getRoll(), -3, Timer.getFPGATimestamp()));
+        double output = -balancer.calculateOutput(navx.getRoll(), -3, Timer.getFPGATimestamp());
+        System.out.println(navx.getRoll() + " : " + output);
+        pivot.set(ControlMode.PercentOutput, output);
     }
 
     public void setTargetPosition(double targetPosition) {
@@ -103,10 +107,12 @@ public class Intake {
 
     public void zeroSensor() {
         pivot.setSelectedSensorPosition((int) sensorBounds.min());
+        currentPosition = 0.0;
     }
 
     public void updateSensor() {
-        positionStreamer.send(getPosition());
+        currentPosition = getPosition();
+        positionStreamer.send(currentPosition);
         targetStreamer.send(this.targetPosition);
     }
 
@@ -122,7 +128,7 @@ public class Intake {
 
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
-        double angle = Utils.lerp(getPosition(), 0.29, 0.62, 0.5 * Math.PI, Math.PI);
+        double angle = Utils.lerp(currentPosition, 0.29, 0.62, 0.5 * Math.PI, Math.PI);
         double gravityCompensation = 0.075 * Math.cos(angle);
         setpointStreamer.send(sp.getPosition());
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,

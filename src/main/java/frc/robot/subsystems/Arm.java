@@ -19,12 +19,15 @@ public class Arm {
         public static final double UP_ANGLE = 0.955;
         public static final double UP_FLAT = 0.905;
         public static final double DOWN_FLAT = 0.071;
-        public static final double SLIGHTLY_DOWN = 0.04;
+        public static final double DOWN_UP = 0.1;
     }
 
     private TalonSRX pivot;
 
     private Double targetPosition;
+
+    private Double currentPosition;
+
     private static double verticalPosition = 0.779;
 
     private Bounds sensorBounds = new Bounds(0, 9500.0);
@@ -83,17 +86,19 @@ public class Arm {
     }
 
     public void zeroSensor() {
+        currentPosition = -0.02;
         pivot.setSelectedSensorPosition((int) Utils.lerp(-0.02, 0.0, 1.0, sensorBounds.min(), sensorBounds.max()));
     }
 
     public void updateSensor() {
-        positionStreamer.send(getPosition());
+        currentPosition = getPosition();
+        positionStreamer.send(currentPosition);
         targetStreamer.send(this.targetPosition);
-        angleStreamer.send(getRealAngle());
+        angleStreamer.send(getRealAngle(currentPosition));
     }
 
-    private double getRealAngle() {
-        return Utils.lerp(getPosition(), 0.346, verticalPosition, 0, 0.5 * Math.PI);
+    private double getRealAngle(Double position) {
+        return Utils.lerp(position, 0.346, verticalPosition, 0, 0.5 * Math.PI);
     }
 
     public void update() {
@@ -108,7 +113,7 @@ public class Arm {
 
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
-        double gravityCompensation = 0.1 * Math.cos(getRealAngle());
+        double gravityCompensation = 0.1 * Math.cos(getRealAngle(currentPosition));
         setpointStreamer.send(sp.getPosition());
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + (kF * sp.getVelocity()));
