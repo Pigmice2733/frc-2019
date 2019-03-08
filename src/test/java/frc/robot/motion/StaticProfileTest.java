@@ -2,6 +2,7 @@ package frc.robot.motion;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import frc.robot.plots.TimePlot;
 
@@ -16,9 +17,10 @@ public class StaticProfileTest {
     private static void plotProfile(StaticProfile profile, String name, double duration, double step) {
         if (TimePlot.shouldGraph("profiles")) {
             TimePlot profilePlot = new TimePlot(name, "Velocity", profile::getVelocity, duration, step);
+            profile.reset();
             profilePlot.addSeries("Position", profile::getPosition, step);
+            profile.reset();
             profilePlot.addSeries("Acceleration", profile::getAcceleration, step);
-
             profilePlot.save("profiles");
         }
     }
@@ -26,7 +28,12 @@ public class StaticProfileTest {
     public static class MaxVelocityEqualityTest {
         // Check to make sure comparisons to maximum velocity handled floating point
         // error
-        private static StaticProfile fpe = new StaticProfile(0.0, 0.7789, 0.9, 0.65, 1.1, 1.1);
+        private static StaticProfile fpe;
+
+        @Before
+        public void setup() {
+            fpe = new StaticProfile(0.0, 0.7789, 0.9, 0.65, 1.1, 1.1);
+        }
 
         @Test
         public void test() {
@@ -36,13 +43,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            fpe = new StaticProfile(0.0, 0.7789, 0.9, 0.65, 1.1, 1.1);
             plotProfile(fpe, "fpe");
         }
     }
 
     public static class TrapezoidalTest {
         // Pure trapezoid
-        private static StaticProfile trapezoidalProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
+        private static StaticProfile trapezoidalProfile;
+
+        @Before
+        public void setup() {
+            trapezoidalProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -110,13 +123,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            trapezoidalProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
             plotProfile(trapezoidalProfile, "trapezoid");
         }
     }
 
     public static class WrongDirectionTest {
         // Trapezoid with leading wrong direction
-        private static StaticProfile wrongDirectionProfile = new StaticProfile(-1, 0.5, 16.0, 4.0, 2.0, 1.0);
+        private static StaticProfile wrongDirectionProfile;
+
+        @Before
+        public void setup() {
+            wrongDirectionProfile = new StaticProfile(-1, 0.5, 16.0, 4.0, 2.0, 1.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -185,13 +204,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            wrongDirectionProfile = new StaticProfile(-1, 0.5, 16.0, 4.0, 2.0, 1.0);
             plotProfile(wrongDirectionProfile, "wrongDir");
         }
     }
 
     public static class TriangularTest {
         // Pure triangle
-        private static StaticProfile triangularProfile = new StaticProfile(0.0, 0.0, 35.69, 9.0, 2.0, 2.15);
+        private static StaticProfile triangularProfile;
+
+        @Before
+        public void setup() {
+            triangularProfile = new StaticProfile(0.0, 0.0, 35.69, 9.0, 2.0, 2.15);
+        }
 
         @Test
         public void getVelocity() {
@@ -238,13 +263,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            triangularProfile = new StaticProfile(0.0, 0.0, 35.69, 9.0, 2.0, 2.15);
             plotProfile(triangularProfile, "triangle");
         }
     }
 
     public static class PartialTriangleTest {
         // Starts partway into triangle, leading corner chopped off
-        private static StaticProfile quadrilateralProfile = new StaticProfile(1.0, 0.0, 5.5, 5.0, 1.0, 0.5);
+        private static StaticProfile quadrilateralProfile;
+
+        @Before
+        public void setup() {
+            quadrilateralProfile = new StaticProfile(1.0, 0.0, 5.5, 5.0, 1.0, 0.5);
+        }
 
         @Test
         public void getVelocity() {
@@ -284,20 +315,26 @@ public class StaticProfileTest {
             Assert.assertEquals(0.0, quadrilateralProfile.getAcceleration(5.0), epsilon);
         }
 
-        @AfterClass
-        public static void plot() {
-            plotProfile(quadrilateralProfile, "partialTriangle");
-        }
-
         @Test
         public void getDuration() {
             Assert.assertEquals(5.0, quadrilateralProfile.getDuration(), epsilon);
+        }
+
+        @AfterClass
+        public static void plot() {
+            quadrilateralProfile = new StaticProfile(1.0, 0.0, 5.5, 5.0, 1.0, 0.5);
+            plotProfile(quadrilateralProfile, "partialTriangle");
         }
     }
 
     public static class ReverseTriangularTest {
         // Negative triangle profile, reverse direction
-        private static StaticProfile reverseTriangleProfile = new StaticProfile(0.0, 0.0, -35.69, 9.0, 2.0, 2.15);
+        private static StaticProfile reverseTriangleProfile;
+
+        @Before
+        public void setup() {
+            reverseTriangleProfile = new StaticProfile(0.0, 0.0, -35.69, 9.0, 2.0, 2.15);
+        }
 
         @Test
         public void getVelocity() {
@@ -344,13 +381,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            reverseTriangleProfile = new StaticProfile(0.0, 0.0, -35.69, 9.0, 2.0, 2.15);
             plotProfile(reverseTriangleProfile, "reverseTriangle");
         }
     }
 
     public static class PartialTrapezoidTest {
         // Starts partway into trapezoid, leading corner chopped off
-        private static StaticProfile pentagonProfile = new StaticProfile(2.5, 0.0, 11.25, 5.0, 2.5, 5.0);
+        private static StaticProfile pentagonProfile;
+
+        @Before
+        public void setup() {
+            pentagonProfile = new StaticProfile(2.5, 0.0, 11.25, 5.0, 2.5, 5.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -403,13 +446,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            pentagonProfile = new StaticProfile(2.5, 0.0, 11.25, 5.0, 2.5, 5.0);
             plotProfile(pentagonProfile, "partialTrapezoid");
         }
     }
 
     public static class DecelerationTest {
         // Needs to decelerate directly from start of profile
-        private static StaticProfile decelerationProfile = new StaticProfile(4.0, 4.0, 12.0, 6.0, 2.0, 1.0);
+        private static StaticProfile decelerationProfile;
+
+        @Before
+        public void setup() {
+            decelerationProfile = new StaticProfile(4.0, 4.0, 12.0, 6.0, 2.0, 1.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -443,13 +492,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            decelerationProfile = new StaticProfile(4.0, 4.0, 12.0, 6.0, 2.0, 1.0);
             plotProfile(decelerationProfile, "deceleration");
         }
     }
 
     public static class MaxSpeedToDecelerationTest {
         // Starts at max speed, decelerates after max speed chunk
-        private static StaticProfile maxSpeedToDecelerationProfile = new StaticProfile(8.0, 0.0, 40.0, 8.0, 2.0, 1.0);
+        private static StaticProfile maxSpeedToDecelerationProfile;
+
+        @Before
+        public void setup() {
+            maxSpeedToDecelerationProfile = new StaticProfile(8.0, 0.0, 40.0, 8.0, 2.0, 1.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -494,13 +549,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            maxSpeedToDecelerationProfile = new StaticProfile(8.0, 0.0, 40.0, 8.0, 2.0, 1.0);
             plotProfile(maxSpeedToDecelerationProfile, "maxSpeedDecel");
         }
     }
 
     public static class HighSpeedDecelerationTest {
         // Starts above max speed, decelerates to max speed, and then to zero
-        private static StaticProfile highSpeedDecelerationProfile = new StaticProfile(10.0, 0.0, 58.0, 8.0, 2.0, 1.0);
+        private static StaticProfile highSpeedDecelerationProfile;
+
+        @Before
+        public void setup() {
+            highSpeedDecelerationProfile = new StaticProfile(10.0, 0.0, 58.0, 8.0, 2.0, 1.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -557,13 +618,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            highSpeedDecelerationProfile = new StaticProfile(10.0, 0.0, 58.0, 8.0, 2.0, 1.0);
             plotProfile(highSpeedDecelerationProfile, "highSpeedDecel");
         }
     }
 
     public static class OvershootFromMaxSpeedTest {
         // Starts at max speed, overshoots while decelerating - needs to backtrack
-        private static StaticProfile overshootFromMaxSpeed = new StaticProfile(10.0, 0.0, 34.0, 10.0, 1.0, 1.0);
+        private static StaticProfile overshootFromMaxSpeed;
+
+        @Before
+        public void setup() {
+            overshootFromMaxSpeed = new StaticProfile(10.0, 0.0, 34.0, 10.0, 1.0, 1.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -606,13 +673,19 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            overshootFromMaxSpeed = new StaticProfile(10.0, 0.0, 34.0, 10.0, 1.0, 1.0);
             plotProfile(overshootFromMaxSpeed, "overshootMaxSpeed");
         }
     }
 
     public static class HighSpeedOvershootTest {
         // Starts at max speed, overshoots while decelerating - needs to backtrack
-        private static StaticProfile highSpeedOvershoot = new StaticProfile(50.0, 0.0, 1000.0, 10.0, 1.0, 1.0);
+        private static StaticProfile highSpeedOvershoot;
+
+        @Before
+        public void setup() {
+            highSpeedOvershoot = new StaticProfile(50.0, 0.0, 1000.0, 10.0, 1.0, 1.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -659,6 +732,7 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            highSpeedOvershoot = new StaticProfile(50.0, 0.0, 1000.0, 10.0, 1.0, 1.0);
             plotProfile(highSpeedOvershoot, "highspeedOvershoot");
         }
     }
@@ -666,6 +740,11 @@ public class StaticProfileTest {
     public static class OverrunTimeTest {
         // Pure trapezoid
         private static StaticProfile overrunTimeProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
+
+        @Before
+        public void setup() {
+            overrunTimeProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
+        }
 
         @Test
         public void getVelocity() {
@@ -734,6 +813,7 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
+            overrunTimeProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
             plotProfile(overrunTimeProfile, "overrunTime", 12.0, 0.025);
         }
     }

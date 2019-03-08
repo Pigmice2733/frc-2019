@@ -9,7 +9,12 @@ public class StaticProfile {
 
     private final ArrayList<Chunk> chunks;
     private double maxAccel, maxDecel, maxVelocity, startingPosition;
-    private double profileDuration;
+    private double profileDuration, profileDistance;
+
+    private int currentChunk = 0;
+    private double chunkEndTime, chunkStartTime, previousDistance;
+
+    private Chunk chunk;
 
     public StaticProfile(double currentVelocity, double currentPosition, double targetDistance, double maxVelocity,
             double maxAccel, double maxDecel) {
@@ -22,9 +27,16 @@ public class StaticProfile {
         chunks = computeChunks(new ArrayList<Chunk>(), currentVelocity, targetDisplacement);
 
         profileDuration = 0.0;
+        profileDistance = currentPosition;
         for (Chunk chunk : chunks) {
             profileDuration += chunk.getDuration();
+            profileDistance += chunk.getTotalDistance();
         }
+
+        previousDistance = currentPosition;
+        chunk = chunks.get(0);
+        chunkEndTime = chunk.getDuration();
+        chunkStartTime = 0.0;
     }
 
     private ArrayList<Chunk> computeChunks(ArrayList<Chunk> chunks, double currentVelocity, double remainingDistance) {
@@ -117,6 +129,13 @@ public class StaticProfile {
         return chunks;
     }
 
+    public void reset() {
+        previousDistance = startingPosition;
+        currentChunk = 0;
+        chunkEndTime = chunks.get(0).getDuration();
+        chunkStartTime = 0.0;
+    }
+
     public double getVelocity(double time) {
         return getSetpoint(time).getVelocity();
     }
@@ -137,20 +156,25 @@ public class StaticProfile {
         return new Setpoint(distance, 0.0, 0.0, 0.0, 0.0);
     }
 
+    private void advanceChunk() {
+        chunkStartTime = chunkEndTime;
+        chunk = chunks.get(currentChunk);
+        previousDistance += chunk.getTotalDistance();
+
+        currentChunk += 1;
+        chunk = chunks.get(currentChunk);
+        chunkEndTime += chunk.getDuration();
+    }
+
     public Setpoint getSetpoint(double time) {
-        double chunkStartTime = 0.0;
-        double previousDistance = startingPosition;
-        // find the chunk that this time is in and return it
-        for (Chunk chunk : chunks) {
-            double chunkEndTime = chunkStartTime + chunk.getDuration();
-            if (time < chunkEndTime) {
-                return new Setpoint(chunk, time - chunkStartTime, previousDistance, 0.0, 0.0);
-            }
-            chunkStartTime = chunkEndTime;
-            previousDistance += chunk.getTotalDistance();
+        if (time >= profileDuration) {
+            return getEndSetpoint(profileDistance);
         }
-        // time is past all the chunks, return end moment - acceleration, velocity are
-        // zero, distance is the same as the end of the profile
-        return getEndSetpoint(previousDistance);
+
+        while (time >= chunkEndTime) {
+            advanceChunk();
+        }
+
+        return new Setpoint(chunk, time - chunkStartTime, previousDistance, 0.0, 0.0);
     }
 }
