@@ -5,14 +5,19 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Manipulator {
-    private DoubleSolenoid piston1;
-    private DoubleSolenoid piston2;
+    private DoubleSolenoid solenoid1;
+    private DoubleSolenoid solenoid2;
     private State lastValue = State.Retract;
     private double lastExtendedStart = 0;
 
-    public Manipulator(DoubleSolenoid piston1, DoubleSolenoid piston2) {
-        this.piston1 = piston1;
-        this.piston2 = piston2;
+    private Value solenoid1State, solenoid2State;
+
+    public Manipulator(DoubleSolenoid solenoid1, DoubleSolenoid solendoid2) {
+        this.solenoid1 = solenoid1;
+        this.solenoid2 = solendoid2;
+
+        solenoid1State = solenoid1.get();
+        solenoid2State = solendoid2.get();
     }
 
     public enum State {
@@ -46,20 +51,29 @@ public class Manipulator {
     }
 
     private void slack() {
-        piston1.set(Value.kReverse);
-        piston2.set(Value.kReverse);
+        update(Value.kReverse, Value.kReverse);
         lastValue = State.Slack;
     }
 
     private void retract() {
-        piston1.set(Value.kReverse);
-        piston2.set(Value.kForward);
+        update(Value.kReverse, Value.kForward);
         lastValue = State.Retract;
     }
 
     private void extend() {
-        piston1.set(Value.kForward);
-        piston2.set(Value.kReverse);
+        update(Value.kForward, Value.kReverse);
         lastValue = State.Extend;
+    }
+
+    private void update(Value newSolenoid1, Value newSolenoid2) {
+        if (newSolenoid1 != solenoid1State) {
+            solenoid1.set(newSolenoid1);
+            solenoid1State = newSolenoid1;
+        }
+
+        if (newSolenoid2 != solenoid2State) {
+            solenoid2.set(newSolenoid2);
+            solenoid2State = newSolenoid2;
+        }
     }
 }

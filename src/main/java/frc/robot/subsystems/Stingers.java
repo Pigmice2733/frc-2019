@@ -4,21 +4,40 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Stingers {
-    private DoubleSolenoid solenoid;
+    private DoubleSolenoid mode, control;
 
-    public Stingers(DoubleSolenoid solenoid) {
-        this.solenoid = solenoid;
+    private Value modeState = Value.kReverse, controlState = Value.kForward;
+
+    public Stingers(DoubleSolenoid mode, DoubleSolenoid control) {
+        this.mode = mode;
+        this.control = control;
     }
 
-    public void fire() {
-        solenoid.set(Value.kReverse);
+    public boolean isExtending() {
+        return mode.get().equals(Value.kReverse);
     }
 
-    public void stop() {
-        solenoid.set(Value.kOff);
+    public void extend() {
+        update(Value.kReverse, Value.kForward);
     }
 
     public void retract() {
-        solenoid.set(Value.kForward);
+        update(Value.kForward, Value.kReverse);
+    }
+
+    public void stop() {
+        update(Value.kReverse, Value.kReverse);
+    }
+
+    private void update(Value newMode, Value newControl) {
+        if (newMode != modeState) {
+            mode.set(newMode);
+            modeState = newMode;
+        }
+
+        if (newControl != controlState) {
+            control.set(newControl);
+            controlState = newControl;
+        }
     }
 }

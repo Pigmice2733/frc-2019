@@ -14,16 +14,20 @@ import frc.robot.utils.Utils;
 
 public class Arm {
     public class Target {
-        public static final double ANGLED_DOWN = 0.05;
-        public static final double ANGLED_UP = 0.85;
-        public static final double UP_FLAT = 0.925;
+        public static final double START = -0.014;
+        public static final double DOWN_ANGLE = 0.02;
+        public static final double UP_ANGLE = 0.955;
+        public static final double UP_FLAT = 0.905;
         public static final double DOWN_FLAT = 0.071;
-        public static final double SLIGHTLY_DOWN = 0.04;
+        public static final double DOWN_UP = 0.1;
     }
 
     private TalonSRX pivot;
 
     private Double targetPosition;
+
+    private Double currentPosition;
+
     private static double verticalPosition = 0.779;
 
     private Bounds sensorBounds = new Bounds(0, 9500.0);
@@ -38,7 +42,7 @@ public class Arm {
     private double kF = 0.4;
 
     public Arm(TalonSRX pivotMotor) {
-        this.pivot = pivotMotor;
+        pivot = pivotMotor;
         pivot.config_kP(0, 0.7, 10);
         pivot.config_kI(0, 0.005, 10);
         pivot.config_kD(0, 0.0, 10);
@@ -62,9 +66,9 @@ public class Arm {
     }
 
     public void setTargetPosition(double targetPosition) {
-        if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
+        if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
+            resetPID();
             this.targetPosition = targetPosition;
-            System.out.println("Profiling arm from " + getPosition() + " to " + targetPosition);
             StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
             profileExecutor.initialize();
@@ -82,17 +86,19 @@ public class Arm {
     }
 
     public void zeroSensor() {
+        currentPosition = -0.02;
         pivot.setSelectedSensorPosition((int) Utils.lerp(-0.02, 0.0, 1.0, sensorBounds.min(), sensorBounds.max()));
     }
 
     public void updateSensor() {
-        positionStreamer.send(getPosition());
+        currentPosition = getPosition();
+        positionStreamer.send(currentPosition);
         targetStreamer.send(this.targetPosition);
-        angleStreamer.send(getRealAngle());
+        angleStreamer.send(getRealAngle(currentPosition));
     }
 
-    private double getRealAngle() {
-        return Utils.lerp(getPosition(), 0.346, verticalPosition, 0, Math.PI / 2);
+    private double getRealAngle(Double position) {
+        return Utils.lerp(position, 0.346, verticalPosition, 0, 0.5 * Math.PI);
     }
 
     public void update() {
@@ -101,12 +107,16 @@ public class Arm {
         profileExecutor.update();
     }
 
+    public void resetPID() {
+        pivot.setIntegralAccumulator(0.0, 0, 10);
+    }
+
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
-        double gravityCompensation = 0.1 * Math.cos(getRealAngle());
+        double gravityCompensation = 0.1 * Math.cos(getRealAngle(currentPosition));
         setpointStreamer.send(sp.getPosition());
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
-                gravityCompensation + kF * sp.getVelocity());
+                gravityCompensation + (kF * sp.getVelocity()));
         outputStreamer.send(pivot.getMotorOutputPercent());
     }
 }

@@ -17,8 +17,8 @@ public class Elevator {
 
     private Double targetPosition;
 
-    // physical max: 30100
-    // physical min: 0
+    private Double currentPosition;
+
     private Bounds sensorBounds = new Bounds(0, 30400.0);
 
     private StaticProfileExecutor profileExecutor;
@@ -27,14 +27,12 @@ public class Elevator {
     private NTStreamer<Double> setpointStreamer;
     private NTStreamer<Double> outputStreamer;
 
-    private double kF;
-    private double gravityCompensation;
+    private double kF = 0.75;
+    private double gravityCompensation = 0.055;
 
     public Elevator(TalonSRX winchMotor) {
         winch = winchMotor;
-        winchMotor.config_kP(0, 0.0015, 10);
-        // winchMotor.config_kP(0, 0.0, 10);
-        // winchMotor.config_kI(0, 0.000009, 10);
+        winchMotor.config_kP(0, 0.2, 10);
         winchMotor.config_kI(0, 0.0, 10);
         winchMotor.config_kD(0, 0.0, 10);
         winchMotor.config_kF(0, 0.0, 10);
@@ -46,7 +44,7 @@ public class Elevator {
         outputStreamer = new NTStreamer<>("elevator", "output");
 
         zeroSensor();
-        setTargetPosition(0.5);
+        setTargetPosition(0.138);
     }
 
     public void drive(double percent) {
@@ -55,18 +53,12 @@ public class Elevator {
     }
 
     public void setTargetPosition(double targetPosition) {
-        if (this.targetPosition == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
-            System.out.println("Profiling elevator from " + getPosition() + " to " + targetPosition);
+        if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
+            resetPID();
             StaticProfile profile;
-            kF = 0.7;
-            gravityCompensation = 0.055;
             if (this.targetPosition != null && this.targetPosition > targetPosition) {
-                // kF = 0.58;
-                // Down
                 profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.3, 0.9, 0.9);
             } else {
-                // kF = 0.79;
-                // Up
                 profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.3, 0.9, 0.9);
             }
             this.targetPosition = targetPosition;
@@ -86,11 +78,13 @@ public class Elevator {
     }
 
     public void zeroSensor() {
+        currentPosition = 0.138;
         winch.setSelectedSensorPosition((int) Utils.lerp(0.138, 0, 1.0, sensorBounds.min(), sensorBounds.max()));
     }
 
     public void updateSensor() {
-        positionStreamer.send(getPosition());
+        currentPosition = getPosition();
+        positionStreamer.send(currentPosition);
         targetStreamer.send(this.targetPosition);
     }
 
@@ -98,6 +92,10 @@ public class Elevator {
         updateSensor();
 
         profileExecutor.update();
+    }
+
+    public void resetPID() {
+        winch.setIntegralAccumulator(0.0, 0, 10);
     }
 
     private void output(Setpoint sp) {

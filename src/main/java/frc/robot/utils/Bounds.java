@@ -36,4 +36,8 @@ public class Bounds {
     public boolean overlaps(Bounds other) {
         return min <= other.max() && other.min() <= max;
     }
+
+    public boolean contains(double value) {
+        return min <= value && value <= max;
+    }
 }

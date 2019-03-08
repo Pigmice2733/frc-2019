@@ -60,7 +60,7 @@ public class Vision {
                 initPort();
             }
 
-            while (Thread.interrupted() && initialized && enabledStatus.get()) {
+            while (!Thread.interrupted() && initialized && enabledStatus.get()) {
                 try {
                     parseInput(remainingInput + port.readString());
                 } catch (Exception e) {
@@ -88,7 +88,7 @@ public class Vision {
 
     private void initPort() {
         try {
-            port = new SerialPort(9600, SerialPort.Port.kUSB);
+            port = new SerialPort(9600, SerialPort.Port.kUSB2);
             initialized = true;
         } catch (Exception e) {
             initialized = false;

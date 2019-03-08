@@ -40,7 +40,8 @@ public class Drivetrain {
         leftDrive.set(ControlMode.PercentOutput, leftSpeed);
         rightDrive.set(ControlMode.PercentOutput, rightSpeed);
 
-        // nonLinearStateEstimator.update(getLeftSensorPosition(), getRightSensorPosition(), navx.getAngle());
+        // nonLinearStateEstimator.update(getLeftSensorPosition(),
+        // getRightSensorPosition(), navx.getAngle());
     }
 
     public void arcadeDrive(double forwardSpeed, double turnSpeed) {
