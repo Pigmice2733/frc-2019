@@ -33,11 +33,11 @@ public class Arm {
     private Bounds sensorBounds = new Bounds(0, 9500.0);
 
     private StaticProfileExecutor profileExecutor;
-    private NTStreamer<Double> positionStreamer;
-    private NTStreamer<Double> targetStreamer;
-    private NTStreamer<Double> setpointStreamer;
-    private NTStreamer<Double> outputStreamer;
-    private NTStreamer<Double> angleStreamer;
+    // private NTStreamer<Double> positionStreamer;
+    // private NTStreamer<Double> targetStreamer;
+    // private NTStreamer<Double> setpointStreamer;
+    // private NTStreamer<Double> outputStreamer;
+    // private NTStreamer<Double> angleStreamer;
 
     private double kF = 0.4;
 
@@ -48,11 +48,11 @@ public class Arm {
         pivot.config_kD(0, 0.0, 10);
         pivot.config_kF(0, 0.0, 10);
 
-        positionStreamer = new NTStreamer<>("arm", "position");
-        targetStreamer = new NTStreamer<>("arm", "target");
-        setpointStreamer = new NTStreamer<>("arm", "setpoint");
-        outputStreamer = new NTStreamer<>("arm", "output");
-        angleStreamer = new NTStreamer<>("arm", "angle");
+        // positionStreamer = new NTStreamer<>("arm", "position");
+        // targetStreamer = new NTStreamer<>("arm", "target");
+        // setpointStreamer = new NTStreamer<>("arm", "setpoint");
+        // outputStreamer = new NTStreamer<>("arm", "output");
+        // angleStreamer = new NTStreamer<>("arm", "angle");
 
         targetPosition = Target.DOWN_FLAT;
 
@@ -61,7 +61,7 @@ public class Arm {
     }
 
     public void drive(double percent) {
-        outputStreamer.send(percent);
+        // outputStreamer.send(percent);
         pivot.set(ControlMode.PercentOutput, percent);
     }
 
@@ -92,9 +92,9 @@ public class Arm {
 
     public void updateSensor() {
         currentPosition = getPosition();
-        positionStreamer.send(currentPosition);
-        targetStreamer.send(this.targetPosition);
-        angleStreamer.send(getRealAngle(currentPosition));
+        // positionStreamer.send(currentPosition);
+        // targetStreamer.send(this.targetPosition);
+        // angleStreamer.send(getRealAngle(currentPosition));
     }
 
     private double getRealAngle(Double position) {
@@ -114,9 +114,9 @@ public class Arm {
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
         double gravityCompensation = 0.1 * Math.cos(getRealAngle(currentPosition));
-        setpointStreamer.send(sp.getPosition());
+        // setpointStreamer.send(sp.getPosition());
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + (kF * sp.getVelocity()));
-        outputStreamer.send(pivot.getMotorOutputPercent());
+        // outputStreamer.send(pivot.getMotorOutputPercent());
     }
 }

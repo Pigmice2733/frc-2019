@@ -22,10 +22,10 @@ public class Elevator {
     private Bounds sensorBounds = new Bounds(0, 30400.0);
 
     private StaticProfileExecutor profileExecutor;
-    private NTStreamer<Double> positionStreamer;
-    private NTStreamer<Double> targetStreamer;
-    private NTStreamer<Double> setpointStreamer;
-    private NTStreamer<Double> outputStreamer;
+    // private NTStreamer<Double> positionStreamer;
+    // private NTStreamer<Double> targetStreamer;
+    // private NTStreamer<Double> setpointStreamer;
+    // private NTStreamer<Double> outputStreamer;
 
     private double kF = 0.75;
     private double gravityCompensation = 0.055;
@@ -38,17 +38,17 @@ public class Elevator {
         winchMotor.config_kF(0, 0.0, 10);
         winchMotor.configNeutralDeadband(0.005, 10);
 
-        positionStreamer = new NTStreamer<>("elevator", "position");
-        targetStreamer = new NTStreamer<>("elevator", "target");
-        setpointStreamer = new NTStreamer<>("elevator", "setpoint");
-        outputStreamer = new NTStreamer<>("elevator", "output");
+        // positionStreamer = new NTStreamer<>("elevator", "position");
+        // targetStreamer = new NTStreamer<>("elevator", "target");
+        // setpointStreamer = new NTStreamer<>("elevator", "setpoint");
+        // outputStreamer = new NTStreamer<>("elevator", "output");
 
         zeroSensor();
         setTargetPosition(0.138);
     }
 
     public void drive(double percent) {
-        outputStreamer.send(percent);
+        // outputStreamer.send(percent);
         winch.set(ControlMode.PercentOutput, percent);
     }
 
@@ -84,8 +84,8 @@ public class Elevator {
 
     public void updateSensor() {
         currentPosition = getPosition();
-        positionStreamer.send(currentPosition);
-        targetStreamer.send(this.targetPosition);
+        // positionStreamer.send(currentPosition);
+        // targetStreamer.send(this.targetPosition);
     }
 
     public void update() {
@@ -100,9 +100,9 @@ public class Elevator {
 
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
-        setpointStreamer.send(sp.getPosition());
+        // setpointStreamer.send(sp.getPosition());
         winch.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + kF * sp.getVelocity());
-        outputStreamer.send(winch.getMotorOutputPercent());
+        // outputStreamer.send(winch.getMotorOutputPercent());
     }
 }
