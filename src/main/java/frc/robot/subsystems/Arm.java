@@ -70,7 +70,7 @@ public class Arm {
             resetPID();
             this.targetPosition = targetPosition;
             StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);
-            profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
+            profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             profileExecutor.initialize();
         }
     }
@@ -105,7 +105,7 @@ public class Arm {
     public void update() {
         // updateSensor();
 
-        profileExecutor.update();
+        profileExecutor.updateNoEnd();
     }
 
     public void resetPID() {

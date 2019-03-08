@@ -19,15 +19,22 @@ public class StaticProfileExecutor {
     private double startTime;
     private double allowableError;
 
+    private double finalTarget;
+
+    private double profileTime = 0.0;
+
     public StaticProfileExecutor(StaticProfile profile, Output output, Input input, double allowableError) {
         this.profile = profile;
         this.output = output;
         this.input = input;
         this.allowableError = allowableError;
+
+        finalTarget = profile.getPosition(profile.getDuration());
     }
 
     public void initialize() {
         startTime = Timer.getFPGATimestamp();
+        profileTime = 0.0;
     }
 
     // Returns true if error is within the allowable error, false otherwise
@@ -36,8 +43,13 @@ public class StaticProfileExecutor {
         Setpoint sp = profile.getSetpoint(time);
         output.set(sp);
 
-        // return time >= profile.getDuration();
-        double error = Math.abs(profile.getPosition(profile.getDuration()) - input.get());
+        double error = Math.abs(finalTarget - input.get());
         return error <= allowableError;
+    }
+
+    public void updateNoEnd() {
+        profileTime += 0.02;
+        Setpoint sp = profile.getSetpoint(profileTime);
+        output.set(sp);
     }
 }

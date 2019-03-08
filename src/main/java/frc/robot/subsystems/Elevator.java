@@ -62,7 +62,7 @@ public class Elevator {
                 profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.3, 0.9, 0.9);
             }
             this.targetPosition = targetPosition;
-            profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
+            profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             profileExecutor.initialize();
         }
     }
@@ -91,7 +91,7 @@ public class Elevator {
     public void update() {
         // updateSensor();
 
-        profileExecutor.update();
+        profileExecutor.updateNoEnd();
     }
 
     public void resetPID() {

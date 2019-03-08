@@ -90,7 +90,7 @@ public class Intake {
             resetPID();
             this.targetPosition = targetPosition;
             StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.4, 2.0, 0.8);
-            profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
+            profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             profileExecutor.initialize();
         }
     }
@@ -120,7 +120,7 @@ public class Intake {
     public void update() {
         // updateSensor();
 
-        profileExecutor.update();
+        profileExecutor.updateNoEnd();
     }
 
     public void resetPID() {
