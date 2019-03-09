@@ -43,6 +43,8 @@ public class Robot extends TimedRobot {
     ButtonDebouncer climbToggle;
     boolean climbMode = false;
 
+    boolean trimMode = false;
+    double trimArmPose = 0.0;
     // Vision vision;
 
     Drivetrain drivetrain;
@@ -208,6 +210,21 @@ public class Robot extends TimedRobot {
         // }
 
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+
+        if(operatorJoystick.getRawButton(8)) {
+            if(!trimMode) {
+                trimMode = true;
+                trimArmPose = arm.getPosition();
+            }
+            arm.drive(-0.2 * operatorJoystick.getY());
+            return;
+
+        } else {
+            if(trimMode) {
+                arm.setPosition(trimArmPose);
+                trimMode = false;
+            }
+        }
 
         if (modeToggle.get()) {
             hatchMode = !hatchMode;

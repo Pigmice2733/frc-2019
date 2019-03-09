@@ -83,6 +83,11 @@ public class Arm {
         return currentPosition;
     }
 
+    public void setPosition(double position) {
+        double raw = Utils.lerp(position, 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
+        pivot.setSelectedSensorPosition((int) raw);
+    }
+
     public double getVelocity() {
         double raw = (double) pivot.getSelectedSensorVelocity();
         return Utils.lerp(raw, -sensorBounds.size(), sensorBounds.size(), -1.0, 1.0);
