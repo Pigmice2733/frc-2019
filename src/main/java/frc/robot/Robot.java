@@ -21,7 +21,9 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import frc.robot.Vision.Target;
+import edu.wpi.first.wpilibj.Timer;
+import frc.robot.pidf.Gains;
+import frc.robot.pidf.PIDF;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
@@ -31,6 +33,7 @@ import frc.robot.subsystems.Outtake;
 import frc.robot.subsystems.Stingers;
 import frc.robot.superstructure.Pose;
 import frc.robot.superstructure.SuperStructure;
+import frc.robot.utils.Bounds;
 import frc.robot.utils.ButtonDebouncer;
 
 public class Robot extends TimedRobot {
@@ -43,7 +46,9 @@ public class Robot extends TimedRobot {
     ButtonDebouncer climbToggle;
     boolean climbMode = false;
 
-    // Vision vision;
+    Vision vision;
+    PIDF visionAlignment;
+    boolean visionEnabled = false;
 
     Drivetrain drivetrain;
     Stingers stingers;
@@ -110,7 +115,10 @@ public class Robot extends TimedRobot {
         modeToggle = new ButtonDebouncer(operatorJoystick, 9);
         climbToggle = new ButtonDebouncer(operatorJoystick, 10);
 
-        // vision = new Vision(this::isEnabled);
+        vision = new Vision(this::isEnabled);
+        Bounds visionOutputBounds = new Bounds(-0.4, 0.4);
+        Gains alignmentGains = new Gains(0.2, 0.0, 0.0);
+        visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
 
         CameraServer server = CameraServer.getInstance();
         server.startAutomaticCapture("Driver Cam", 0);
@@ -119,7 +127,7 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
-        // vision.start();
+        vision.start();
     }
 
     @Override
@@ -135,6 +143,11 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         gamePeriodic();
+    }
+
+    @Override
+    public void testInit() {
+        vision.start();
     }
 
     @Override
@@ -188,26 +201,36 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void disabledInit() {
+        vision.stop();
+    }
+
+    @Override
     public void disabledPeriodic() {
         elevator.updateSensor();
         arm.updateSensor();
         intake.updateSensor();
     }
-    
+
     private void gamePeriodic() {
-        // if (driverJoystick.getRawButton(1)) {
-        // Target visionTarget = vision.getTarget();
+        if (driverJoystick.getRawButton(1)) {
+            double visionOffset = vision.getOffset();
 
-        // if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
-        // drivetrain.arcadeDrive(-driverJoystick.getY(), 0.005 * visionTarget.offset);
-        // } else {
-        // System.out.println("Not connected/visible");
-        // }
-        // } else {
-        // drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
-        // }
+            if (!visionEnabled) {
+                visionEnabled = true;
+                visionAlignment.initialize(visionOffset, Timer.getFPGATimestamp(), 0.0);
+            }
 
-        drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+            if (visionOffset != -1 || visionOffset != 0.0) {
+                double output = visionAlignment.calculateOutput(visionOffset, 0.0, Timer.getFPGATimestamp());
+                drivetrain.arcadeDrive(-driverJoystick.getY(), output);
+            } else {
+                System.out.println("Not connected/visible");
+            }
+        } else {
+            visionEnabled = false;
+            drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+        }
 
         if (modeToggle.get()) {
             hatchMode = !hatchMode;
@@ -224,7 +247,7 @@ public class Robot extends TimedRobot {
                 manipulator.setPosition(Manipulator.State.Retract);
             }
             outtake.drive(0.0);
-        } else if(!climbMode){
+        } else if (!climbMode) {
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
                 intake.setRoller(0.6);
@@ -244,7 +267,7 @@ public class Robot extends TimedRobot {
         }
 
         if (climbMode) {
-            if(operatorJoystick.getRawButton(6)) {
+            if (operatorJoystick.getRawButton(6)) {
                 intake.levelRobot();
             } else {
                 superStructure.initialize(SuperStructure.Target.PRE_CLIMB);
