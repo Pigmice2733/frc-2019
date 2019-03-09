@@ -15,11 +15,13 @@ import frc.robot.utils.Utils;
 public class Arm {
     public class Target {
         public static final double START = -0.014;
+        public static final double CLIMB = 0.0;
         public static final double DOWN_ANGLE = 0.02;
         public static final double UP_ANGLE = 0.955;
         public static final double UP_FLAT = 0.905;
         public static final double DOWN_FLAT = 0.071;
         public static final double DOWN_UP = 0.1;
+        public static final double DOWN_SLIGHT = 0.052;
     }
 
     private TalonSRX pivot;

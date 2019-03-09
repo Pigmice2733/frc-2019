@@ -100,7 +100,7 @@ public class Robot extends TimedRobot {
         intake = new Intake(intakePivot, intakeRoller, navx);
 
         // Stinger pistons
-        stingers = new Stingers(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
+        stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
 
         superStructure = new SuperStructure(elevator, arm, intake, stingers, navx);
 
@@ -117,84 +117,24 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void teleopInit() {
+    public void autonomousInit() {
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
         // vision.start();
     }
 
     @Override
+    public void autonomousPeriodic() {
+        gamePeriodic();
+    }
+
+    @Override
+    public void teleopInit() {
+        superStructure.initialize(superStructure.getPose());
+    }
+
+    @Override
     public void teleopPeriodic() {
-        // if (driverJoystick.getRawButton(1)) {
-        // Target visionTarget = vision.getTarget();
-
-        // if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
-        // drivetrain.arcadeDrive(-driverJoystick.getY(), 0.005 * visionTarget.offset);
-        // } else {
-        // System.out.println("Not connected/visible");
-        // }
-        // } else {
-        // drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
-        // }
-
-        if (modeToggle.get()) {
-            hatchMode = !hatchMode;
-        }
-
-        if (hatchMode) {
-            if (operatorJoystick.getRawButton(6)) {
-                // right bumper
-                manipulator.setPosition(Manipulator.State.Slack);
-            } else if (operatorJoystick.getRawButton(5)) {
-                // left bumper
-                manipulator.setPosition(Manipulator.State.Extend);
-            } else {
-                manipulator.setPosition(Manipulator.State.Retract);
-            }
-            outtake.drive(0.0);
-        } else {
-            if (operatorJoystick.getRawButton(6)) {
-                // right bumper
-                intake.setRoller(0.6);
-                outtake.drive(-0.4);
-            } else if (operatorJoystick.getRawButton(5)) {
-                // left bumper
-                outtake.drive(0.6);
-                intake.setRoller(0.0);
-            } else {
-                outtake.drive(-0.20);
-                intake.setRoller(0.0);
-            }
-        }
-
-        Pose target = findSetpoint();
-        if (target != null) {
-            superStructure.target(target);
-        } else {
-            superStructure.update();
-        }
-
-        // if (climbToggle.get()) {
-        // climbMode = !climbMode;
-        // if (climbMode) {
-        // intake.startBalancing();
-        // }
-        // }
-
-        // if (climbMode) {
-        // intake.levelRobot();
-
-        // if (operatorJoystick.getRawButton(3)) {
-        // stingers.extend();
-        // } else if (operatorJoystick.getRawButton(4)) {
-        // stingers.retract();
-        // } else {
-        // stingers.stop();
-        // }
-
-        // intake.setRoller(-operatorJoystick.getY());
-        // } else {
-        // stingers.retract();
-        // }
+        gamePeriodic();
     }
 
     @Override
@@ -252,6 +192,83 @@ public class Robot extends TimedRobot {
         elevator.updateSensor();
         arm.updateSensor();
         intake.updateSensor();
+    }
+    
+    private void gamePeriodic() {
+        // if (driverJoystick.getRawButton(1)) {
+        // Target visionTarget = vision.getTarget();
+
+        // if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
+        // drivetrain.arcadeDrive(-driverJoystick.getY(), 0.005 * visionTarget.offset);
+        // } else {
+        // System.out.println("Not connected/visible");
+        // }
+        // } else {
+        // drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+        // }
+
+        drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+
+        if (modeToggle.get()) {
+            hatchMode = !hatchMode;
+        }
+
+        if (hatchMode && !climbMode) {
+            if (operatorJoystick.getRawButton(6)) {
+                // right bumper
+                manipulator.setPosition(Manipulator.State.Slack);
+            } else if (operatorJoystick.getRawButton(5)) {
+                // left bumper
+                manipulator.setPosition(Manipulator.State.Extend);
+            } else {
+                manipulator.setPosition(Manipulator.State.Retract);
+            }
+            outtake.drive(0.0);
+        } else if(!climbMode){
+            if (operatorJoystick.getRawButton(6)) {
+                // right bumper
+                intake.setRoller(0.6);
+                outtake.drive(-0.4);
+            } else if (operatorJoystick.getRawButton(5)) {
+                // left bumper
+                outtake.drive(0.6);
+                intake.setRoller(0.0);
+            } else {
+                outtake.drive(-0.20);
+                intake.setRoller(0.0);
+            }
+        }
+
+        if (climbToggle.get()) {
+            climbMode = !climbMode;
+        }
+
+        if (climbMode) {
+            if(operatorJoystick.getRawButton(6)) {
+                intake.levelRobot();
+            } else {
+                superStructure.initialize(SuperStructure.Target.PRE_CLIMB);
+            }
+
+            if (operatorJoystick.getRawButton(3)) {
+                stingers.extend();
+            } else if (operatorJoystick.getRawButton(4)) {
+                stingers.retract();
+            } else {
+                stingers.stop();
+            }
+
+            intake.setRoller(-2.0 * driverJoystick.getY());
+        } else {
+            Pose target = findSetpoint();
+            if (target != null) {
+                superStructure.target(target);
+            } else {
+                superStructure.update();
+            }
+
+            stingers.retract();
+        }
     }
 
     private Pose findSetpoint() {

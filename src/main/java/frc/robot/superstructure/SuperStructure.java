@@ -16,20 +16,20 @@ public class SuperStructure {
 
     private Pose finalTarget;
 
-    private static final Bounds intakeCollision = new Bounds(0.115, 0.54);
+    private static final Bounds intakeCollision = new Bounds(0.115, 0.47);
 
     public static class Target {
         public static final Pose STARTING_CONFIG = new Pose(0.138, Arm.Target.START, Intake.Target.START);
-        public static final Pose HATCH_BOTTOM = new Pose(0.0, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_BACK);
-        public static final Pose HATCH_M_FRONT = new Pose(1.008, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_BOTTOM = new Pose(0.0, Arm.Target.DOWN_SLIGHT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_M_FRONT = new Pose(0.997, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
         public static final Pose HATCH_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_BACK);
         public static final Pose HATCH_TOP = new Pose(0.875, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
-        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_M_FRONT = new Pose(1.0, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_M_FRONT = new Pose(0.997, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
         public static final Pose CARGO_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_TOP = new Pose(1.0, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_TOP = new Pose(0.997, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
         public static final Pose CARGO_INTAKE = new Pose(0.0, Arm.Target.DOWN_UP, Intake.Target.INTAKE);
-        public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.DOWN_ANGLE, Intake.Target.STOWED_UP);
+        public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.CLIMB, Intake.Target.CLIMB);
     }
 
     public SuperStructure(Elevator elevator, Arm arm, Intake intake, Stingers stingers, AHRS navx) {
@@ -91,7 +91,7 @@ public class SuperStructure {
             // right spot, then let everything go to final intake (which raises intake to
             // vertical)
             if (intakeCollision.contains(target.intake)
-                    && (!intakeCollision.contains(current.intake) || current.elevator > 0.9 || current.arm > 0.5)) {
+                    && (!intakeCollision.contains(current.intake) || current.elevator > 0.9 || current.arm > 0.5 || (current.elevator < 0.12 && current.arm < 0.1))) {
                 if (current.intake < 0.54 && (current.elevator > 0.14 || current.intake < 0.3)) {
                     // raise elevator
                     if (current.elevator < 0.9) {
@@ -127,11 +127,11 @@ public class SuperStructure {
             if (current.arm < 0.0 && Utils.almostEquals(target.arm, Arm.Target.START)) {
                 return target;
                 // If elevator is too low, raise immediatly
-            } else if (current.elevator < 0.175 && current.arm < 0.08) {
+            } else if (current.elevator < 0.15 && current.arm < 0.045) {
                 return current.setElevatorMin(0.2);
                 // Maintained raised elevator throughout move until not over battery
             } else {
-                if (current.arm > 0.08) {
+                if (current.arm > 0.045) {
                     return target.setElevatorMin(0.0);
                 } else {
                     return target.setElevatorMin(0.2);

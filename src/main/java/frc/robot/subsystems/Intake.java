@@ -21,10 +21,13 @@ public class Intake {
         public static final double INTAKE = 0.545;
         public static final double STOWED_UP = 0.365;
         public static final double STOWED_BACK = 0.03;
+        public static final double CLIMB = 0.39;
     }
 
     private TalonSRX pivot;
     private TalonSRX roller;
+
+    private boolean levelling = false;
 
     private Double targetPosition;
 
@@ -68,6 +71,7 @@ public class Intake {
     public void drive(double percent) {
         // outputStreamer.send(percent);
         pivot.set(ControlMode.PercentOutput, percent);
+        levelling = false;
         // positionStreamer.send(getPosition());
     }
 
@@ -80,12 +84,16 @@ public class Intake {
     }
 
     public void levelRobot() {
+        if(!levelling) {
+            startBalancing();
+            levelling = true;
+        }
         double output = -balancer.calculateOutput(navx.getRoll(), -3, Timer.getFPGATimestamp());
-        System.out.println(navx.getRoll() + " : " + output);
         pivot.set(ControlMode.PercentOutput, output);
     }
 
     public void setTargetPosition(double targetPosition) {
+        levelling = false;
         if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             resetPID();
             this.targetPosition = targetPosition;
