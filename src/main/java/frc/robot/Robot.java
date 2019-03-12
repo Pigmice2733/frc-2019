@@ -218,16 +218,19 @@ public class Robot extends TimedRobot {
         if (driverJoystick.getRawButton(1)) {
             double visionOffset = vision.getOffset();
 
-            if (!visionEnabled) {
-                visionEnabled = true;
-                visionAlignment.initialize(visionOffset, Timer.getFPGATimestamp(), 0.0);
-            }
+            if (visionOffset != -5.0 && visionOffset != 0.0) {
 
-            if (visionOffset != -1 || visionOffset != 0.0) {
+                if (!visionEnabled) {
+                    visionEnabled = true;
+                    visionAlignment.initialize(visionOffset, Timer.getFPGATimestamp(), 0.0);
+                }
+
                 double output = visionAlignment.calculateOutput(visionOffset, 0.0, Timer.getFPGATimestamp());
                 drivetrain.arcadeDrive(-driverJoystick.getY(), output);
             } else {
                 System.out.println("Not connected/visible");
+                visionEnabled = false;
+                drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
             }
         } else {
             visionEnabled = false;

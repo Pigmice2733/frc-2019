@@ -74,7 +74,7 @@ public class Vision {
 
     private void initPort() {
         try {
-            port = new SerialPort(9600, SerialPort.Port.kUSB2);
+            port = new SerialPort(9600, SerialPort.Port.kUSB1);
             initialized = true;
         } catch (Exception e) {
             initialized = false;
