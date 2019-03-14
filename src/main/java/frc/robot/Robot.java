@@ -118,8 +118,8 @@ public class Robot extends TimedRobot {
         climbToggle = new ButtonDebouncer(operatorJoystick, 10);
 
         vision = new Vision(this::isEnabled);
-        Bounds visionOutputBounds = new Bounds(-0.4, 0.4);
-        Gains alignmentGains = new Gains(0.2, 0.0, 0.0);
+        Bounds visionOutputBounds = new Bounds(-0.6, 0.6);
+        Gains alignmentGains = new Gains(-0.35, 0.0, 0.0);
         visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
 
         CameraServer server = CameraServer.getInstance();
@@ -215,8 +215,9 @@ public class Robot extends TimedRobot {
     }
 
     private void gamePeriodic() {
+        double visionOffset = vision.getOffset();
+
         if (driverJoystick.getRawButton(1)) {
-            double visionOffset = vision.getOffset();
 
             if (visionOffset != -5.0 && visionOffset != 0.0) {
 
@@ -226,7 +227,7 @@ public class Robot extends TimedRobot {
                 }
 
                 double output = visionAlignment.calculateOutput(visionOffset, 0.0, Timer.getFPGATimestamp());
-                drivetrain.arcadeDrive(-driverJoystick.getY(), output);
+                drivetrain.arcadeDrive(-driverJoystick.getY(), Math.signum(-driverJoystick.getY()) * output);
             } else {
                 System.out.println("Not connected/visible");
                 visionEnabled = false;
@@ -237,8 +238,8 @@ public class Robot extends TimedRobot {
             drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
         }
 
-        if(operatorJoystick.getRawButton(8)) {
-            if(!trimMode) {
+        if (operatorJoystick.getRawButton(8)) {
+            if (!trimMode) {
                 trimMode = true;
                 trimArmPose = arm.getPosition();
             }
@@ -246,7 +247,7 @@ public class Robot extends TimedRobot {
             return;
 
         } else {
-            if(trimMode) {
+            if (trimMode) {
                 arm.setPosition(trimArmPose);
                 trimMode = false;
             }
