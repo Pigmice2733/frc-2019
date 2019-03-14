@@ -11,20 +11,9 @@ public class Vision {
 
     private String remainingInput = "";
     private volatile double targetOffset = 0.0;
-    private volatile double targetDistance = 0.0;
 
     public interface StatusCheck {
         public boolean get();
-    }
-
-    public class Target {
-        public final double distance;
-        public final double offset;
-
-        public Target(double distance, double offset) {
-            this.distance = distance;
-            this.offset = offset;
-        }
     }
 
     public Vision(StatusCheck enabled) {
@@ -44,13 +33,12 @@ public class Vision {
         thread = createThread();
     }
 
-    private synchronized void setTarget(double targetDistance, double targetOffset) {
-        this.targetDistance = targetDistance;
+    private synchronized void setTarget(double targetOffset) {
         this.targetOffset = targetOffset;
     }
 
-    public synchronized Target getTarget() {
-        return new Target(targetDistance, targetOffset);
+    public synchronized double getOffset() {
+        return targetOffset;
     }
 
     private Thread createThread() {
@@ -74,12 +62,10 @@ public class Vision {
 
     private void parseInput(String input) {
         int offsetIndex = input.lastIndexOf("OFF");
-        int distanceIndex = input.lastIndexOf("DIST");
         int endIndex = input.lastIndexOf("END");
 
-        if (endIndex > distanceIndex && distanceIndex > offsetIndex && offsetIndex > 0) {
-            setTarget(Double.valueOf(input.substring(distanceIndex + 5, endIndex - 1)),
-                    Double.valueOf(input.substring(offsetIndex + 4, distanceIndex - 1)));
+        if (endIndex > offsetIndex && offsetIndex > 0) {
+            setTarget(Double.valueOf(input.substring(offsetIndex + 4, endIndex - 1)));
             remainingInput = input.substring(endIndex + 3);
         } else {
             remainingInput = input;
@@ -88,7 +74,7 @@ public class Vision {
 
     private void initPort() {
         try {
-            port = new SerialPort(9600, SerialPort.Port.kUSB2);
+            port = new SerialPort(9600, SerialPort.Port.kUSB1);
             initialized = true;
         } catch (Exception e) {
             initialized = false;

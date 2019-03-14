@@ -8,7 +8,7 @@ public class Stingers {
 
     private Value modeState = Value.kReverse, controlState = Value.kForward;
 
-    public Stingers(DoubleSolenoid mode, DoubleSolenoid control) {
+    public Stingers(DoubleSolenoid control, DoubleSolenoid mode) {
         this.mode = mode;
         this.control = control;
     }

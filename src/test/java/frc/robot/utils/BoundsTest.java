@@ -40,4 +40,32 @@ public class BoundsTest {
         first = new Bounds(-1.0, -200.0);
         Assert.assertFalse(first.overlaps(second));
     }
+
+    @Test
+    public void min() {
+        Bounds bounds = new Bounds(5, 7);
+        Assert.assertEquals(5, bounds.min(), epsilon);
+        bounds = new Bounds(7, -2);
+        Assert.assertEquals(-2, bounds.min(), epsilon);
+    }
+
+    @Test
+    public void max() {
+        Bounds bounds = new Bounds(-6, 7);
+        Assert.assertEquals(7, bounds.max(), epsilon);
+        bounds = new Bounds(300, -0.0001);
+        Assert.assertEquals(300, bounds.max(), epsilon);
+    }
+
+    @Test
+    public void contains() {
+        Bounds bounds = new Bounds(1, 3);
+        Assert.assertTrue(bounds.contains(2));
+        Assert.assertTrue(bounds.contains(3));
+        Assert.assertTrue(bounds.contains(1));
+        Assert.assertFalse(bounds.contains(0.99));
+        Assert.assertFalse(bounds.contains(0));
+        Assert.assertFalse(bounds.contains(3.001));
+        Assert.assertFalse(bounds.contains(200));
+    }
 }

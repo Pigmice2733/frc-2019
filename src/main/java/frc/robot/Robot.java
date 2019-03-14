@@ -21,7 +21,9 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import frc.robot.Vision.Target;
+import edu.wpi.first.wpilibj.Timer;
+import frc.robot.pidf.Gains;
+import frc.robot.pidf.PIDF;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
@@ -31,6 +33,7 @@ import frc.robot.subsystems.Outtake;
 import frc.robot.subsystems.Stingers;
 import frc.robot.superstructure.Pose;
 import frc.robot.superstructure.SuperStructure;
+import frc.robot.utils.Bounds;
 import frc.robot.utils.ButtonDebouncer;
 
 public class Robot extends TimedRobot {
@@ -43,7 +46,11 @@ public class Robot extends TimedRobot {
     ButtonDebouncer climbToggle;
     boolean climbMode = false;
 
+    boolean trimMode = false;
+    double trimArmPose = 0.0;
     Vision vision;
+    PIDF visionAlignment;
+    boolean visionEnabled = false;
 
     Drivetrain drivetrain;
     Stingers stingers;
@@ -100,7 +107,7 @@ public class Robot extends TimedRobot {
         intake = new Intake(intakePivot, intakeRoller, navx);
 
         // Stinger pistons
-        stingers = new Stingers(new DoubleSolenoid(0, 1), new DoubleSolenoid(2, 3));
+        stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
 
         superStructure = new SuperStructure(elevator, arm, intake, stingers, navx);
 
@@ -111,90 +118,33 @@ public class Robot extends TimedRobot {
         climbToggle = new ButtonDebouncer(operatorJoystick, 10);
 
         vision = new Vision(this::isEnabled);
+        Bounds visionOutputBounds = new Bounds(-0.6, 0.6);
+        Gains alignmentGains = new Gains(-0.35, 0.0, 0.0);
+        visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
 
-        // CameraServer server = CameraServer.getInstance();
-        // server.startAutomaticCapture("Driver Cam", 0);
+        CameraServer server = CameraServer.getInstance();
+        server.startAutomaticCapture("Driver Cam", 0);
     }
 
     @Override
-    public void teleopInit() {
+    public void autonomousInit() {
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
         vision.start();
     }
 
     @Override
+    public void autonomousPeriodic() {
+        gamePeriodic();
+    }
+
+    @Override
+    public void teleopInit() {
+        superStructure.initialize(superStructure.getPose());
+    }
+
+    @Override
     public void teleopPeriodic() {
-        // if (driverJoystick.getRawButton(1)) {
-        // Target visionTarget = vision.getTarget();
-
-        // if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
-        // drivetrain.arcadeDrive(-driverJoystick.getY(), 0.005 * visionTarget.offset);
-        // } else {
-        // System.out.println("Not connected/visible");
-        // }
-        // } else {
-        // drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
-        // }
-
-        if (modeToggle.get()) {
-            hatchMode = !hatchMode;
-        }
-
-        if (hatchMode) {
-            if (operatorJoystick.getRawButton(6)) {
-                // right bumper
-                manipulator.setPosition(Manipulator.State.Slack);
-            } else if (operatorJoystick.getRawButton(5)) {
-                // left bumper
-                manipulator.setPosition(Manipulator.State.Extend);
-            } else {
-                manipulator.setPosition(Manipulator.State.Retract);
-            }
-            outtake.drive(0.0);
-        } else {
-            if (operatorJoystick.getRawButton(6)) {
-                // right bumper
-                intake.setRoller(0.6);
-                outtake.drive(-0.4);
-            } else if (operatorJoystick.getRawButton(5)) {
-                // left bumper
-                outtake.drive(0.6);
-                intake.setRoller(0.0);
-            } else {
-                outtake.drive(-0.20);
-                intake.setRoller(0.0);
-            }
-        }
-
-        Pose target = findSetpoint();
-        if (target != null) {
-            superStructure.target(target);
-        } else {
-            superStructure.update();
-        }
-
-        // if (climbToggle.get()) {
-        // climbMode = !climbMode;
-        // if (climbMode) {
-        // intake.startBalancing();
-        // }
-        // }
-
-        // if (climbMode) {
-        // intake.levelRobot();
-
-        // if (operatorJoystick.getRawButton(3)) {
-        // stingers.extend();
-        // } else if (operatorJoystick.getRawButton(4)) {
-        // stingers.retract();
-        // } else {
-        // stingers.stop();
-        // }
-
-        // intake.setRoller(-operatorJoystick.getY());
-        // } else {
-        // stingers.retract();
-        // }
+        gamePeriodic();
     }
 
     @Override
@@ -204,19 +154,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testPeriodic() {
-        Target visionTarget = vision.getTarget();
+        drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
-        System.out.println(visionTarget.offset);
-
-        if (driverJoystick.getRawButton(1)) {
-            if (visionTarget.offset != -1 || visionTarget.offset != 0.0) {
-                drivetrain.arcadeDrive(-driverJoystick.getY(), 0.2 * visionTarget.offset);
-            } else {
-                System.out.println("Not connected/visible");
-            }
-        } else {
-            drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
-        }
         intake.setRoller(-driverJoystick.getY());
 
         if (operatorJoystick.getRawButton(3)) {
@@ -275,6 +214,107 @@ public class Robot extends TimedRobot {
         intake.updateSensor();
     }
 
+    private void gamePeriodic() {
+        double visionOffset = vision.getOffset();
+
+        if (driverJoystick.getRawButton(1)) {
+
+            if (visionOffset != -5.0 && visionOffset != 0.0) {
+
+                if (!visionEnabled) {
+                    visionEnabled = true;
+                    visionAlignment.initialize(visionOffset, Timer.getFPGATimestamp(), 0.0);
+                }
+
+                double output = visionAlignment.calculateOutput(visionOffset, 0.0, Timer.getFPGATimestamp());
+                drivetrain.arcadeDrive(-driverJoystick.getY(), Math.signum(-driverJoystick.getY()) * output);
+            } else {
+                System.out.println("Not connected/visible");
+                visionEnabled = false;
+                drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+            }
+        } else {
+            visionEnabled = false;
+            drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
+        }
+
+        if (operatorJoystick.getRawButton(8)) {
+            if (!trimMode) {
+                trimMode = true;
+                trimArmPose = arm.getPosition();
+            }
+            arm.drive(-0.2 * operatorJoystick.getY());
+            return;
+
+        } else {
+            if (trimMode) {
+                arm.setPosition(trimArmPose);
+                trimMode = false;
+            }
+        }
+
+        if (modeToggle.get()) {
+            hatchMode = !hatchMode;
+        }
+
+        if (hatchMode && !climbMode) {
+            if (operatorJoystick.getRawButton(6)) {
+                // right bumper
+                manipulator.setPosition(Manipulator.State.Slack);
+            } else if (operatorJoystick.getRawButton(5)) {
+                // left bumper
+                manipulator.setPosition(Manipulator.State.Extend);
+            } else {
+                manipulator.setPosition(Manipulator.State.Retract);
+            }
+            outtake.drive(0.0);
+        } else if (!climbMode) {
+            if (operatorJoystick.getRawButton(6)) {
+                // right bumper
+                intake.setRoller(0.6);
+                outtake.drive(-0.4);
+            } else if (operatorJoystick.getRawButton(5)) {
+                // left bumper
+                outtake.drive(0.6);
+                intake.setRoller(0.0);
+            } else {
+                outtake.drive(-0.20);
+                intake.setRoller(0.0);
+            }
+        }
+
+        if (climbToggle.get()) {
+            climbMode = !climbMode;
+        }
+
+        if (climbMode) {
+            if (operatorJoystick.getRawButton(6)) {
+                intake.levelRobot();
+            } else {
+                superStructure.initialize(SuperStructure.Target.PRE_CLIMB);
+            }
+
+            if (operatorJoystick.getRawButton(3)) {
+                stingers.extend();
+            } else if (operatorJoystick.getRawButton(4)) {
+                stingers.retract();
+            } else {
+                stingers.stop();
+            }
+
+            intake.setRoller(-2.0 * driverJoystick.getY());
+        } else {
+            Pose target = findSetpoint();
+            if (target != null) {
+                superStructure.target(target);
+            } else {
+                superStructure.update();
+            }
+
+            stingers.retract();
+        }
+    }
+
     private Pose findSetpoint() {
         if (hatchMode) {
             if (operatorJoystick.getRawButton(1)) {
@@ -306,6 +346,10 @@ public class Robot extends TimedRobot {
             }
         }
 
+        if (operatorJoystick.getRawButton(7)) {
+            return SuperStructure.Target.STARTING_CONFIG;
+        }
+
         if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM)
                 || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE)) {
             if (operatorJoystick.getRawButton(6)) {
@@ -313,10 +357,6 @@ public class Robot extends TimedRobot {
             } else {
                 return SuperStructure.Target.CARGO_BOTTOM;
             }
-        }
-
-        if (operatorJoystick.getRawButton(7)) {
-            return SuperStructure.Target.STARTING_CONFIG;
         }
 
         return null;

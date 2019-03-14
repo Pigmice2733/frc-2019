@@ -21,10 +21,13 @@ public class Intake {
         public static final double INTAKE = 0.545;
         public static final double STOWED_UP = 0.365;
         public static final double STOWED_BACK = 0.03;
+        public static final double CLIMB = 0.39;
     }
 
     private TalonSRX pivot;
     private TalonSRX roller;
+
+    private boolean levelling = false;
 
     private Double targetPosition;
 
@@ -33,10 +36,10 @@ public class Intake {
     private Bounds sensorBounds = new Bounds(0, 2640.0);
 
     private StaticProfileExecutor profileExecutor;
-    private NTStreamer<Double> positionStreamer;
-    private NTStreamer<Double> targetStreamer;
-    private NTStreamer<Double> setpointStreamer;
-    private NTStreamer<Double> outputStreamer;
+    // private NTStreamer<Double> positionStreamer;
+    // private NTStreamer<Double> targetStreamer;
+    // private NTStreamer<Double> setpointStreamer;
+    // private NTStreamer<Double> outputStreamer;
     private AHRS navx;
 
     private double kF = 0.75;
@@ -52,10 +55,10 @@ public class Intake {
         pivot.config_kD(0, 1.2, 10);
         pivot.config_kF(0, 0.0, 10);
 
-        positionStreamer = new NTStreamer<>("intake", "position");
-        targetStreamer = new NTStreamer<>("intake", "target");
-        setpointStreamer = new NTStreamer<>("intake", "setpoint");
-        outputStreamer = new NTStreamer<>("intake", "output");
+        // positionStreamer = new NTStreamer<>("intake", "position");
+        // targetStreamer = new NTStreamer<>("intake", "target");
+        // setpointStreamer = new NTStreamer<>("intake", "setpoint");
+        // outputStreamer = new NTStreamer<>("intake", "output");
 
         zeroSensor();
         setTargetPosition(Target.STOWED_BACK);
@@ -66,9 +69,10 @@ public class Intake {
     }
 
     public void drive(double percent) {
-        outputStreamer.send(percent);
+        // outputStreamer.send(percent);
         pivot.set(ControlMode.PercentOutput, percent);
-        positionStreamer.send(getPosition());
+        levelling = false;
+        // positionStreamer.send(getPosition());
     }
 
     public void setRoller(double percent) {
@@ -80,24 +84,29 @@ public class Intake {
     }
 
     public void levelRobot() {
+        if(!levelling) {
+            startBalancing();
+            levelling = true;
+        }
         double output = -balancer.calculateOutput(navx.getRoll(), -3, Timer.getFPGATimestamp());
-        System.out.println(navx.getRoll() + " : " + output);
         pivot.set(ControlMode.PercentOutput, output);
     }
 
     public void setTargetPosition(double targetPosition) {
+        levelling = false;
         if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             resetPID();
             this.targetPosition = targetPosition;
             StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.4, 2.0, 0.8);
-            profileExecutor = new StaticProfileExecutor(profile, this::output, Timer::getFPGATimestamp, 0.02);
+            profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             profileExecutor.initialize();
         }
     }
 
     public double getPosition() {
         double raw = (double) pivot.getSelectedSensorPosition();
-        return Utils.lerp(raw, sensorBounds.min(), sensorBounds.max(), 0.0, 1.0);
+        currentPosition = Utils.lerp(raw, sensorBounds.min(), sensorBounds.max(), 0.0, 1.0);
+        return currentPosition;
     }
 
     public double getVelocity() {
@@ -112,14 +121,14 @@ public class Intake {
 
     public void updateSensor() {
         currentPosition = getPosition();
-        positionStreamer.send(currentPosition);
-        targetStreamer.send(this.targetPosition);
+        // positionStreamer.send(currentPosition);
+        // targetStreamer.send(this.targetPosition);
     }
 
     public void update() {
-        updateSensor();
+        // updateSensor();
 
-        profileExecutor.update();
+        profileExecutor.updateNoEnd();
     }
 
     public void resetPID() {
@@ -130,9 +139,9 @@ public class Intake {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
         double angle = Utils.lerp(currentPosition, 0.29, 0.62, 0.5 * Math.PI, Math.PI);
         double gravityCompensation = 0.075 * Math.cos(angle);
-        setpointStreamer.send(sp.getPosition());
+        // setpointStreamer.send(sp.getPosition());
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + (kF * sp.getVelocity()));
-        outputStreamer.send(pivot.getMotorOutputPercent());
+        // outputStreamer.send(pivot.getMotorOutputPercent());
     }
 }
