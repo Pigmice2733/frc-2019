@@ -83,59 +83,70 @@ public class SuperStructure {
     /**
      * Returns the next intermediate step in reaching the final target
      */
-    public Pose getIntermediatePose(Pose current, Pose target) {
+    public static Pose getIntermediatePose(Pose current, Pose target) {
 
-        // Prevent ball intake from swinging through bottom of arm
+        // Prevent ball intake from colliding with arm manipulators
         if (crosses(current.intake, target.intake, intakeCollision)) {
-            // If ball intake ends vertical, raise elevator, lower intake, get elevator to
-            // right spot, then let everything go to final intake (which raises intake to
-            // vertical)
-            if (intakeCollision.contains(target.intake)
-                    && (!intakeCollision.contains(current.intake) || current.elevator > 0.9 || current.arm > 0.5 || (current.elevator < 0.12 && current.arm < 0.1))) {
-                if (current.intake < 0.54 && (current.elevator > 0.14 || current.intake < 0.3)) {
-                    // raise elevator
-                    if (current.elevator < 0.9) {
-                        return current.setElevatorMin(1.0).setArm(Arm.Target.DOWN_ANGLE);
-                        // keep elevator up, lower intake
+            // Intake could currently be above manipulators
+            if (intakeCollision.contains(current.intake)) {
+                // Arm starts down
+                if (current.arm < 0.5 && current.elevator < 0.9 && (target.arm > 0.1 || target.elevator > 0.12)) {
+                    // move the intake out in front
+                    return current.setIntakeMin(0.56);
+                }
+
+                // Arm is trying to swing down
+                if (target.arm < 0.5 && target.elevator < 0.9 && (current.elevator > 0.12 || current.arm > 0.1)) {
+                    if (intakeCollision.contains(target.intake)) {
+                        return target.setIntakeMin(0.56).setArmMin(0.5).setElevatorMin(0.3);
                     } else {
-                        return current.setElevatorMin(1.0).setArm(Arm.Target.DOWN_ANGLE).setIntakeMin(0.56);
+                        return target.setArmMin(0.5).setElevatorMin(0.3);
                     }
-                    // move elevator to right spot while keeping intake down
-                } else if (current.elevator > 0.13 || current.arm > 0.05) {
+                }
+            }
+
+            if (intakeCollision.contains(target.intake) && (current.arm < 0.5 || target.arm < 0.5)) {
+                if (current.intake < 0.1 && current.elevator < 0.9) {
+                    return current.setElevator(1.0).setArmMin(Arm.Target.DOWN_FLAT);
+                }
+
+                if (current.intake < 0.54 && (current.elevator > 0.12 || current.arm > 0.1)) {
+                    return current.setIntakeMin(0.56).setElevator(1.0);
+                }
+
+                if (current.elevator > 0.12 || current.arm > 0.1 || target.arm > 0.5) {
                     return target.setIntakeMin(0.56);
-                    // move everything to final target
-                } else {
-                    return target;
                 }
-                // If ball intake is vertical and over top of hatch intake, lower ball intake
-            } else if (intakeCollision.contains(current.intake) && current.elevator < 0.8) {
-                return current.setIntakeMin(0.56);
-                // If ball intake isn't over hatch intake, raise elevator first then move to
-                // final location
+
+                return target;
+            }
+
+            if (current.elevator < 0.9 && !(current.elevator > 0.4 && current.arm > 0.5)) {
+                return current.setElevatorMin(0.5).setArmMin(0.55);
             } else {
-                if (current.elevator < 0.9) {
-                    return current.setElevatorMin(1.0).setArmMin(Arm.Target.DOWN_ANGLE);
-                } else {
-                    return target.setElevatorMin(1.0).setArmMin(Arm.Target.DOWN_ANGLE);
-                }
+                return target.setElevatorMin(0.5).setArmMin(0.55);
             }
         }
 
-        // Prevent arm scoop from hitting battery going to/from starting config
-        if ((current.arm < 0.11 || target.arm < 0.11)) {
-            // If arm is close to start, and start is the target, let elevator down
-            if (current.arm < 0.0 && Utils.almostEquals(target.arm, Arm.Target.START)) {
-                return target;
-                // If elevator is too low, raise immediatly
-            } else if (current.elevator < 0.15 && current.arm < 0.045) {
-                return current.setElevatorMin(0.2);
-                // Maintained raised elevator throughout move until not over battery
-            } else {
-                if (current.arm > 0.045) {
-                    return target.setElevatorMin(0.0);
+        // Enter starting config
+        if (Utils.almostEquals(target.arm, Arm.Target.START)) {
+            if (current.arm > 0.0) {
+                if (current.elevator < 0.15 && current.arm < 0.1) {
+                    return target.setElevatorMin(0.2).setArmMin(0.005);
                 } else {
                     return target.setElevatorMin(0.2);
                 }
+            } else {
+                return target;
+            }
+        }
+
+        // Exit starting config
+        if (current.arm < 0.01) {
+            if (current.elevator < 0.15) {
+                return current.setElevatorMin(0.2);
+            } else {
+                return target.setElevatorMin(0.2);
             }
         }
 

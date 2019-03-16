@@ -272,13 +272,13 @@ public class Robot extends TimedRobot {
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
                 intake.setRoller(0.6);
-                outtake.drive(-0.4);
+                outtake.drive(-0.3);
             } else if (operatorJoystick.getRawButton(5)) {
                 // left bumper
                 outtake.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                outtake.drive(-0.20);
+                outtake.drive(-0.10);
                 intake.setRoller(0.0);
             }
         }
