@@ -124,12 +124,16 @@ public class Robot extends TimedRobot {
 
         CameraServer server = CameraServer.getInstance();
         server.startAutomaticCapture("Driver Cam", 0);
+
+        new Thread(() -> {
+            Timer.delay(5.0);
+            vision.start();
+        }).start();
     }
 
     @Override
     public void autonomousInit() {
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
-        vision.start();
     }
 
     @Override
@@ -203,11 +207,6 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void disabledInit() {
-        vision.stop();
-    }
-
-    @Override
     public void disabledPeriodic() {
         elevator.updateSensor();
         arm.updateSensor();
@@ -215,12 +214,10 @@ public class Robot extends TimedRobot {
     }
 
     private void gamePeriodic() {
-        double visionOffset = vision.getOffset();
-
-        if (driverJoystick.getRawButton(1)) {
+        if (driverJoystick.getRawButton(1) && driverJoystick.getY() < 0.2) {
+            double visionOffset = vision.getOffset();
 
             if (visionOffset != -5.0 && visionOffset != 0.0) {
-
                 if (!visionEnabled) {
                     visionEnabled = true;
                     visionAlignment.initialize(visionOffset, Timer.getFPGATimestamp(), 0.0);

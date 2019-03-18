@@ -43,17 +43,18 @@ public class Vision {
 
     private Thread createThread() {
         return new Thread(() -> {
-            while (!initialized && !Thread.interrupted() && enabledStatus.get()) {
+            while (!initialized && !Thread.interrupted()) {
                 Timer.delay(0.2);
                 initPort();
             }
 
-            while (!Thread.interrupted() && initialized && enabledStatus.get()) {
+            while (!Thread.interrupted() && initialized) {
                 try {
                     parseInput(remainingInput + port.readString());
                 } catch (Exception e) {
                     System.out.println(e.toString());
                     initPort();
+                    initialized = true;
                 }
                 Timer.delay(0.034);
             }
@@ -73,6 +74,13 @@ public class Vision {
     }
 
     private void initPort() {
+        if (port != null) {
+            try {
+                port.close();
+            } catch (Exception e) {
+            }
+        }
+
         try {
             port = new SerialPort(9600, SerialPort.Port.kUSB1);
             initialized = true;
