@@ -20,7 +20,7 @@ public class Intake {
         public static final double START = 0.0;
         public static final double INTAKE = 0.543;
         public static final double STOWED_UP = 0.365;
-        public static final double STOWED_BACK = 0.03;
+        public static final double STOWED_BACK = 0.04;
         public static final double CLIMB = 0.39;
     }
 
