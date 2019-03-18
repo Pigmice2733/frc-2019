@@ -85,15 +85,15 @@ public class SuperStructureTest {
 
         Pose intermediate = SuperStructure.getIntermediatePose(current, target);
 
-        Assert.assertThat("Elevator raised", intermediate.elevator, greaterThan(0.875));
-        Assert.assertThat("Arm lowered", intermediate.arm, lessThanOrEqualTo(0.1));
+        Assert.assertThat("Elevator raised", intermediate.elevator, greaterThan(0.675));
+        Assert.assertThat("Arm raised", intermediate.arm, greaterThanOrEqualTo(0.4));
         Assert.assertEquals(current.intake, intermediate.intake, epsilon);
 
         current = new Pose(0.975, current.arm, current.intake);
         intermediate = SuperStructure.getIntermediatePose(current, target);
 
-        Assert.assertThat("Elevator raised", intermediate.elevator, greaterThan(0.875));
-        Assert.assertThat("Arm lowered", intermediate.arm, lessThanOrEqualTo(0.1));
+        Assert.assertThat("Elevator raised", intermediate.elevator, greaterThan(0.675));
+        Assert.assertThat("Arm raised", intermediate.arm, greaterThanOrEqualTo(0.4));
         Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
 
         current = new Pose(0.975, target.arm, 0.55);
@@ -276,6 +276,105 @@ public class SuperStructureTest {
         Assert.assertEquals(target.intake, intermediate.intake, epsilon);
 
         current = new Pose(0.2, -0.01, 0.03);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertEquals(target.elevator, intermediate.elevator, epsilon);
+        Assert.assertEquals(target.arm, intermediate.arm, epsilon);
+        Assert.assertEquals(target.intake, intermediate.intake, epsilon);
+    }
+
+    @Test
+    public void hatchToClimb() {
+        Pose current = SuperStructure.Target.HATCH_BOTTOM;
+        Pose target = SuperStructure.Target.PRE_CLIMB;
+
+        Pose intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertThat("Elevator raised", intermediate.elevator, greaterThan(0.675));
+        Assert.assertThat("Arm raised", intermediate.arm, greaterThanOrEqualTo(0.4));
+        Assert.assertEquals(current.intake, intermediate.intake, epsilon);
+
+        current = new Pose(0.975, current.arm, current.intake);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertThat("Elevator raised", intermediate.elevator, greaterThan(0.675));
+        Assert.assertThat("Arm raised", intermediate.arm, greaterThanOrEqualTo(0.4));
+        Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
+
+        current = new Pose(0.975, target.arm, 0.55);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertEquals(target.elevator, intermediate.elevator, epsilon);
+        Assert.assertEquals(target.arm, intermediate.arm, epsilon);
+        Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
+
+        current = new Pose(0.4, target.arm, 0.55);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertEquals(target.elevator, intermediate.elevator, epsilon);
+        Assert.assertEquals(target.arm, intermediate.arm, epsilon);
+        Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
+
+        current = new Pose(target.elevator, target.arm, 0.55);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertEquals(target.elevator, intermediate.elevator, epsilon);
+        Assert.assertEquals(target.arm, intermediate.arm, epsilon);
+        Assert.assertEquals(target.intake, intermediate.intake, epsilon);
+    }
+
+    @Test
+    public void climbToHatchTop() {
+        Pose current = SuperStructure.Target.PRE_CLIMB;
+        Pose target = SuperStructure.Target.HATCH_TOP;
+
+        Pose intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertEquals(current.elevator, intermediate.elevator, epsilon);
+        Assert.assertEquals(current.arm, intermediate.arm, epsilon);
+        Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
+
+        current = new Pose(current.elevator, current.arm, 0.55);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertThat("Elevator raised", intermediate.elevator, greaterThanOrEqualTo(0.4));
+        Assert.assertThat("Arm raised", intermediate.arm, greaterThanOrEqualTo(0.5));
+        Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
+
+        current = new Pose(0.42, 0.52, 0.54);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertEquals(target.elevator, intermediate.elevator, epsilon);
+        Assert.assertEquals(target.arm, intermediate.arm, epsilon);
+        Assert.assertEquals(target.intake, intermediate.intake, epsilon);
+    }
+
+    @Test
+    public void climbToHatchBack() {
+        Pose current = SuperStructure.Target.PRE_CLIMB;
+        Pose target = SuperStructure.Target.HATCH_M_BACK;
+
+        Pose intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertEquals(current.elevator, intermediate.elevator, epsilon);
+        Assert.assertEquals(current.arm, intermediate.arm, epsilon);
+        Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
+
+        current = new Pose(current.elevator, current.arm, current.intake + 0.02);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertEquals(current.elevator, intermediate.elevator, epsilon);
+        Assert.assertEquals(current.arm, intermediate.arm, epsilon);
+        Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
+
+        current = new Pose(current.elevator, current.arm, 0.56);
+        intermediate = SuperStructure.getIntermediatePose(current, target);
+
+        Assert.assertThat("Elevator raised", intermediate.elevator, greaterThanOrEqualTo(0.4));
+        Assert.assertThat("Arm raised", intermediate.arm, greaterThanOrEqualTo(0.5));
+        Assert.assertThat("Intake forward", intermediate.intake, greaterThanOrEqualTo(0.55));
+
+        current = new Pose(target.elevator, 0.61, 0.56);
         intermediate = SuperStructure.getIntermediatePose(current, target);
 
         Assert.assertEquals(target.elevator, intermediate.elevator, epsilon);

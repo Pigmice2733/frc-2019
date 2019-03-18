@@ -16,18 +16,18 @@ public class SuperStructure {
 
     private Pose finalTarget;
 
-    private static final Bounds intakeCollision = new Bounds(0.115, 0.47);
+    private static final Bounds intakeCollision = new Bounds(0.115, 0.52);
 
     public static class Target {
         public static final Pose STARTING_CONFIG = new Pose(0.138, Arm.Target.START, Intake.Target.START);
-        public static final Pose HATCH_BOTTOM = new Pose(0.0, Arm.Target.DOWN_SLIGHT, Intake.Target.STOWED_BACK);
-        public static final Pose HATCH_M_FRONT = new Pose(0.997, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_BOTTOM = new Pose(0.1, Arm.Target.DOWN_SLIGHT, Intake.Target.STOWED_BACK);
+        public static final Pose HATCH_M_FRONT = new Pose(0.992, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
         public static final Pose HATCH_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_BACK);
         public static final Pose HATCH_TOP = new Pose(0.875, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
         public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_M_FRONT = new Pose(0.997, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_M_FRONT = new Pose(0.992, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
         public static final Pose CARGO_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_TOP = new Pose(0.997, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_TOP = new Pose(0.992, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
         public static final Pose CARGO_INTAKE = new Pose(0.0, Arm.Target.DOWN_UP, Intake.Target.INTAKE);
         public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.CLIMB, Intake.Target.CLIMB);
     }
@@ -84,7 +84,6 @@ public class SuperStructure {
      * Returns the next intermediate step in reaching the final target
      */
     public static Pose getIntermediatePose(Pose current, Pose target) {
-
         // Prevent ball intake from colliding with arm manipulators
         if (crosses(current.intake, target.intake, intakeCollision)) {
             // Intake could currently be above manipulators
@@ -106,12 +105,12 @@ public class SuperStructure {
             }
 
             if (intakeCollision.contains(target.intake) && (current.arm < 0.5 || target.arm < 0.5)) {
-                if (current.intake < 0.1 && current.elevator < 0.9) {
-                    return current.setElevator(1.0).setArmMin(Arm.Target.DOWN_FLAT);
+                if (current.intake < 0.1 && current.elevator < 0.6) {
+                    return current.setElevator(0.7).setArmMin(0.5);
                 }
 
                 if (current.intake < 0.54 && (current.elevator > 0.12 || current.arm > 0.1)) {
-                    return current.setIntakeMin(0.56).setElevator(1.0);
+                    return current.setIntakeMin(0.56).setElevator(0.7).setArmMin(0.5);
                 }
 
                 if (current.elevator > 0.12 || current.arm > 0.1 || target.arm > 0.5) {
@@ -121,10 +120,20 @@ public class SuperStructure {
                 return target;
             }
 
-            if (current.elevator < 0.9 && !(current.elevator > 0.4 && current.arm > 0.5)) {
+            if (current.elevator < 0.9) {
+                if (current.arm > 0.6 && target.arm > 0.6) {
+                    return target;
+                }
+
+                if (current.arm > 0.5 && current.elevator > 0.4) {
+                    if (target.arm > 0.7) {
+                        return target;
+                    } else {
+                        return target.setElevatorMin(0.5).setArmMin(0.55);
+                    }
+                }
+
                 return current.setElevatorMin(0.5).setArmMin(0.55);
-            } else {
-                return target.setElevatorMin(0.5).setArmMin(0.55);
             }
         }
 
@@ -137,6 +146,9 @@ public class SuperStructure {
                     return target.setElevatorMin(0.2);
                 }
             } else {
+                if (current.elevator < 0.132) {
+                    return current.setArmMin(0.005).setElevator(0.12);
+                }
                 return target;
             }
         }
