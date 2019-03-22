@@ -18,6 +18,9 @@ public class SuperStructure {
 
     private static final Bounds intakeCollision = new Bounds(0.115, 0.47);
 
+    private static final Double safeArm = 0.3;
+    private static final Double safeElevator = 0.4;
+
     private static String lastState = "S";
 
     public static void setState(String state) {
@@ -98,7 +101,7 @@ public class SuperStructure {
             // Intake could currently be above manipulators
             if (intakeCollision.contains(current.intake)) {
                 // Arm starts down
-                if (current.arm < 0.3 && current.elevator < 0.9 && (target.arm > 0.1 || target.elevator > 0.12
+                if (current.arm < 0.3 && current.elevator < 0.9 && (target.arm > 0.075 || target.elevator > 0.12
                         || (current.intake > 0.2 && target.intake < 0.1))) {
                     // move the intake out in front
                     setState("A");
@@ -164,7 +167,7 @@ public class SuperStructure {
             if (current.arm > 0.0) {
                 if (current.elevator < 0.15 && current.arm < 0.1) {
                     setState("L");
-                    return target.setElevatorMin(0.2).setArmMin(0.005);
+                    return target.setElevatorMin(0.2).setArmMin(0.01);
                 } else {
                     setState("M");
                     return target.setElevatorMin(0.2);
@@ -172,7 +175,7 @@ public class SuperStructure {
             } else {
                 if (current.elevator < 0.132) {
                     setState("N");
-                    return current.setArmMin(0.005).setElevator(0.12);
+                    return current.setArmMin(0.01).setElevator(0.12);
                 }
                 setState("O");
                 return target;
