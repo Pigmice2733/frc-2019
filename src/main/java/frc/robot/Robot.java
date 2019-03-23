@@ -161,6 +161,7 @@ public class Robot extends TimedRobot {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
         intake.setRoller(-driverJoystick.getY());
+        outtake.drive(0);
 
         if (operatorJoystick.getRawButton(3)) {
             if (!climbMode) {
@@ -268,14 +269,14 @@ public class Robot extends TimedRobot {
         } else if (!climbMode) {
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
-                intake.setRoller(0.75);
-                outtake.drive(-0.6);
+                intake.setRoller(0.6);
+                outtake.drive(-0.4);
             } else if (operatorJoystick.getRawButton(5)) {
                 // left bumper
                 outtake.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                outtake.drive(-0.2);
+                outtake.drive(-0.25);
                 intake.setRoller(0.0);
             }
         }
@@ -333,7 +334,8 @@ public class Robot extends TimedRobot {
                 return SuperStructure.Target.CARGO_BOTTOM;
             } else if (operatorJoystick.getRawButton(2)) {
                 // B
-                return SuperStructure.Target.CARGO_M_BACK;
+                // return SuperStructure.Target.CARGO_M_BACK;
+                return SuperStructure.Target.CARGO_OUTTAKE_BOTTOM;
             } else if (operatorJoystick.getRawButton(3)) {
                 // X
                 return SuperStructure.Target.CARGO_M_FRONT;

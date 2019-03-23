@@ -37,10 +37,13 @@ public class SuperStructure {
         public static final Pose HATCH_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_BACK);
         public static final Pose HATCH_TOP = new Pose(0.875, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
         public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_SLIGHT, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_M_FRONT = new Pose(0.992, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_TOP = new Pose(0.992, Arm.Target.UP_FLAT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_M_FRONT = new Pose(0.992, 0.27, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_M_BACK = new Pose(0.0, 0.97, Intake.Target.STOWED_UP);
+        // public static final Pose CARGO_TOP = new Pose(0.852, Arm.Target.UP_FLAT,
+        // Intake.Target.STOWED_UP);
+        public static final Pose CARGO_TOP = new Pose(0.98, 0.50, Intake.Target.STOWED_UP);
         public static final Pose CARGO_INTAKE = new Pose(0.0, Arm.Target.DOWN_UP, Intake.Target.INTAKE);
+        public static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.0, 0.21, 0.5);
         public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.CLIMB, Intake.Target.CLIMB);
     }
 
