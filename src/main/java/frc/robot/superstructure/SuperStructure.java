@@ -36,14 +36,12 @@ public class SuperStructure {
         public static final Pose HATCH_M_FRONT = new Pose(0.992, Arm.Target.DOWN_FLAT, Intake.Target.STOWED_BACK);
         public static final Pose HATCH_M_BACK = new Pose(0.0, Arm.Target.UP_ANGLE, Intake.Target.STOWED_BACK);
         public static final Pose HATCH_TOP = new Pose(0.875, Arm.Target.UP_FLAT, Intake.Target.STOWED_BACK);
-        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_SLIGHT, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_BOTTOM = new Pose(0.1, Arm.Target.DOWN_SLIGHT, Intake.Target.STOWED_FRONT);
         public static final Pose CARGO_M_FRONT = new Pose(0.992, 0.27, Intake.Target.STOWED_UP);
         public static final Pose CARGO_M_BACK = new Pose(0.0, 0.97, Intake.Target.STOWED_UP);
-        // public static final Pose CARGO_TOP = new Pose(0.852, Arm.Target.UP_FLAT,
-        // Intake.Target.STOWED_UP);
         public static final Pose CARGO_TOP = new Pose(0.98, 0.50, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_INTAKE = new Pose(0.0, Arm.Target.DOWN_UP, Intake.Target.INTAKE);
-        public static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.0, 0.21, 0.5);
+        public static final Pose CARGO_INTAKE = new Pose(0.02, Arm.Target.DOWN_UP, Intake.Target.INTAKE);
+        public static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.0, Arm.Target.CARGO_OUTTAKE, 0.5);
         public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.CLIMB, Intake.Target.CLIMB);
     }
 
@@ -114,11 +112,21 @@ public class SuperStructure {
                 // Arm is trying to swing down
                 if (target.arm < 0.3 && target.elevator < 0.9 && (current.elevator > 0.12 || current.arm > 0.1)) {
                     if (intakeCollision.contains(target.intake)) {
-                        setState("B");
-                        return target.setIntakeMin(0.56).setArmMin(0.4).setElevatorMin(0.35);
+                        if (current.intake < 0.475) {
+                            setState("B1");
+                            return current.setIntakeMin(0.56);
+                        } else {
+                            setState("B2");
+                            return target.setIntakeMin(0.56).setArmMin(0.4).setElevatorMin(0.35);
+                        }
                     } else {
-                        setState("C");
-                        return target.setArmMin(0.4).setElevatorMin(0.35);
+                        if (current.intake < 0.475 && target.intake > 0.2 && target.arm < 0.2) {
+                            setState("C1");
+                            return current.setIntakeMin(0.56);
+                        } else {
+                            setState("C2");
+                            return target.setArmMin(0.4).setElevatorMin(0.35);
+                        }
                     }
                 }
             }
@@ -127,15 +135,28 @@ public class SuperStructure {
                     && (current.elevator < 0.85 || target.elevator < 0.9)) {
                 if (current.intake < 0.1 && current.elevator < 0.3) {
                     setState("D");
-                    return current.setElevatorMin(0.35).setArmMin(0.4);
+                    return target.setElevatorMin(0.35).setArmMin(0.4).setIntake(current.intake);
                 }
 
                 if (current.intake < 0.54 && (current.elevator > 0.12 || current.arm > 0.1)) {
-                    setState("E");
-                    return current.setIntakeMin(0.56).setElevatorMin(0.35).setArmMin(0.4);
+                    if (target.elevator > 0.875) {
+                        setState("E1");
+                        return target.setIntakeMin(0.56).setElevatorMin(0.35).setArmMin(0.2);
+                    } else {
+                        if (current.intake > 0.475 && target.arm < 0.15) {
+                            setState("E2");
+                            if (target.elevator < 0.01 && target.arm <= 0.11 && target.arm > 0.1) {
+                                return target.setIntakeMin(0.56).setElevatorMin(0.05);
+                            }
+                            return target.setIntakeMin(0.56).setArmMin(current.arm);
+                        } else {
+                            setState("E3");
+                            return target.setIntakeMin(0.56).setElevatorMin(0.35).setArmMin(0.4);
+                        }
+                    }
                 }
 
-                if (current.elevator > 0.12 || current.arm > 0.1 || target.arm > 0.5) {
+                if (current.elevator > 0.12 || current.arm > 0.1 || target.arm > 0.4 || target.elevator > 0.875) {
                     setState("F");
                     return target.setIntakeMin(0.56);
                 }
@@ -150,7 +171,8 @@ public class SuperStructure {
                     return target;
                 }
 
-                if (current.arm > 0.35 && (current.elevator > 0.3 || target.arm > 0.4)) {
+                if ((current.arm > 0.3 || (current.intake > 0.4 && current.elevator > 0.2))
+                        && (current.elevator > 0.15 || target.arm > 0.35 || target.elevator > 0.875)) {
                     if (target.arm > 0.7) {
                         setState("I");
                         return target;
@@ -165,22 +187,36 @@ public class SuperStructure {
             }
         }
 
+        if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.CARGO_OUTTAKE)) {
+            if (current.arm < (target.arm - 0.035)) {
+                setState("L1");
+                return target.setIntakeMin(0.625);
+            }
+        }
+
+        if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.DOWN_UP)) {
+            if (current.arm < (target.arm - 0.035)) {
+                setState("L2");
+                return target.setElevatorMin(0.2);
+            }
+        }
+
         // Enter starting config
         if (Utils.almostEquals(target.arm, Arm.Target.START)) {
             if (current.arm > 0.0) {
                 if (current.elevator < 0.15 && current.arm < 0.1) {
-                    setState("L");
-                    return target.setElevatorMin(0.2).setArmMin(0.01);
-                } else {
                     setState("M");
+                    return target.setElevatorMin(0.2).setArmMin(0.025);
+                } else {
+                    setState("N");
                     return target.setElevatorMin(0.2);
                 }
             } else {
                 if (current.elevator < 0.132) {
-                    setState("N");
-                    return current.setArmMin(0.01).setElevator(0.12);
+                    setState("O");
+                    return current.setArmMin(0.025).setElevator(0.1);
                 }
-                setState("O");
+                setState("P");
                 return target;
             }
         }
@@ -188,15 +224,15 @@ public class SuperStructure {
         // Exit starting config
         if (current.arm < 0.01) {
             if (current.elevator < 0.15) {
-                setState("P");
+                setState("Q");
                 return current.setElevatorMin(0.2);
             } else {
-                setState("Q");
+                setState("R");
                 return target.setElevatorMin(0.2);
             }
         }
 
-        setState("R");
+        setState("S");
         return target;
     }
 }

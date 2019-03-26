@@ -134,6 +134,8 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
+        climbMode = false;
+        hatchMode = true;
     }
 
     @Override
@@ -266,10 +268,11 @@ public class Robot extends TimedRobot {
                 manipulator.setPosition(Manipulator.State.Retract);
             }
             outtake.drive(0.0);
+            intake.setRoller(0.0);
         } else if (!climbMode) {
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
-                intake.setRoller(0.6);
+                intake.setRoller(0.8);
                 outtake.drive(-0.4);
             } else if (operatorJoystick.getRawButton(5)) {
                 // left bumper
@@ -349,16 +352,12 @@ public class Robot extends TimedRobot {
             return SuperStructure.Target.STARTING_CONFIG;
         }
 
-        if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM)
-                || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE)) {
-            if (operatorJoystick.getRawButton(6)) {
-                return SuperStructure.Target.CARGO_INTAKE;
-            } else {
-                return SuperStructure.Target.CARGO_BOTTOM;
-            }
+        if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM) && operatorJoystick.getRawButton(6)) {
+            return SuperStructure.Target.CARGO_INTAKE;
         }
 
         return null;
+
     }
 
     private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {

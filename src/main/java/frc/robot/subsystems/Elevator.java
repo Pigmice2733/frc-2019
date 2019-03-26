@@ -27,7 +27,7 @@ public class Elevator {
     // private NTStreamer<Double> setpointStreamer;
     // private NTStreamer<Double> outputStreamer;
 
-    private double kF = 0.75;
+    private double kF = 0.85;
     private double gravityCompensation = 0.055;
 
     public Elevator(TalonSRX winchMotor) {
@@ -57,9 +57,9 @@ public class Elevator {
             resetPID();
             StaticProfile profile;
             if (this.targetPosition != null && this.targetPosition > targetPosition) {
-                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.3, 0.9, 0.9);
+                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 2.0, 1.6, 1.6);
             } else {
-                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.3, 0.9, 0.9);
+                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 2.0, 1.6, 1.6);
             }
             this.targetPosition = targetPosition;
             profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);

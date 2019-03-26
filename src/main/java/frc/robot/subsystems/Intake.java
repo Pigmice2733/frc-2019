@@ -19,7 +19,8 @@ public class Intake {
     public class Target {
         public static final double START = 0.0;
         public static final double INTAKE = 0.56;
-        public static final double STOWED_UP = 0.365;
+        public static final double STOWED_FRONT = 0.365;
+        public static final double STOWED_UP = 0.245;
         public static final double STOWED_BACK = 0.04;
         public static final double CLIMB = 0.39;
     }
