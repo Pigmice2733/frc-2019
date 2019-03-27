@@ -82,7 +82,7 @@ public class Vision {
         }
 
         try {
-            port = new SerialPort(9600, SerialPort.Port.kUSB1);
+            port = new SerialPort(115200, SerialPort.Port.kUSB1);
             initialized = true;
         } catch (Exception e) {
             initialized = false;

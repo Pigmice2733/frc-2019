@@ -15,6 +15,9 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.cscore.MjpegServer;
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -48,7 +51,10 @@ public class Robot extends TimedRobot {
 
     boolean trimMode = false;
     double trimArmPose = 0.0;
+
+    MjpegServer camServer;
     Vision vision;
+
     PIDF visionAlignment;
     boolean visionEnabled = false;
 
@@ -121,8 +127,10 @@ public class Robot extends TimedRobot {
         Gains alignmentGains = new Gains(-0.35, 0.0, 0.0);
         visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
 
-        CameraServer server = CameraServer.getInstance();
-        server.startAutomaticCapture("Driver Cam", 0);
+        UsbCamera driverCam = new UsbCamera("DriverCam", 2);
+        driverCam.setVideoMode(PixelFormat.kMJPEG, 320, 240, 30);
+        camServer = new MjpegServer("DriverCam Server", 1180);
+        camServer.setSource(driverCam);
 
         new Thread(() -> {
             Timer.delay(5.0);
