@@ -16,6 +16,7 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -29,7 +30,6 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Manipulator;
-import frc.robot.subsystems.Outtake;
 import frc.robot.subsystems.Stingers;
 import frc.robot.superstructure.Pose;
 import frc.robot.superstructure.SuperStructure;
@@ -62,7 +62,6 @@ public class Robot extends TimedRobot {
     Arm arm;
     Intake intake;
     Manipulator manipulator;
-    Outtake outtake;
 
     SuperStructure superStructure;
     Pose target;
@@ -87,9 +86,9 @@ public class Robot extends TimedRobot {
 
         elevator = new Elevator(elevatorWinch);
 
-        // Manipulator + Ball outtake
-        manipulator = new Manipulator(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5));
-        outtake = new Outtake(new VictorSPX(8));
+        // Lobster + Ball outtake
+        manipulator = new Manipulator(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5), new VictorSPX(8),
+                new AnalogInput(0));
 
         // Arm
         TalonSRX shoulder = new TalonSRX(7);
@@ -163,7 +162,7 @@ public class Robot extends TimedRobot {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
         intake.setRoller(-driverJoystick.getY());
-        outtake.drive(0);
+        manipulator.drive(0);
 
         if (operatorJoystick.getRawButton(3)) {
             if (!climbMode) {
@@ -267,19 +266,19 @@ public class Robot extends TimedRobot {
             } else {
                 manipulator.setPosition(Manipulator.State.Retract);
             }
-            outtake.drive(0.0);
+            manipulator.drive(0.0);
             intake.setRoller(0.0);
         } else if (!climbMode) {
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
                 intake.setRoller(0.8);
-                outtake.drive(-0.4);
+                manipulator.drive(-0.4);
             } else if (operatorJoystick.getRawButton(5)) {
                 // left bumper
-                outtake.drive(0.6);
+                manipulator.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                outtake.drive(-0.25);
+                manipulator.drive(-0.25);
                 intake.setRoller(0.0);
             }
         }
@@ -352,8 +351,22 @@ public class Robot extends TimedRobot {
             return SuperStructure.Target.STARTING_CONFIG;
         }
 
-        if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM) && operatorJoystick.getRawButton(6)) {
-            return SuperStructure.Target.CARGO_INTAKE;
+        if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM)
+                || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE)
+                || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE_HIGH)) {
+            if (operatorJoystick.getRawButton(6)) {
+                if (operatorJoystick.getRawAxis(3) > 0.7) {
+                    return SuperStructure.Target.CARGO_INTAKE_HIGH;
+                } else {
+                    return SuperStructure.Target.CARGO_INTAKE;
+                }
+            } else if (!manipulator.hasBall()) {
+                return SuperStructure.Target.CARGO_BOTTOM;
+            } else if (superStructure.getPose().arm < 0.24) {
+                return SuperStructure.Target.CARGO_OUTTAKE_BOTTOM;
+            } else {
+                return SuperStructure.Target.CARGO_BOTTOM;
+            }
         }
 
         return null;

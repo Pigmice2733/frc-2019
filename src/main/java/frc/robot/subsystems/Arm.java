@@ -127,6 +127,5 @@ public class Arm {
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + (kF * sp.getVelocity()));
         // outputStreamer.send(pivot.getMotorOutputPercent());
-        System.out.println("Pos: " + currentPosition + "  out: " + pivot.getMotorOutputPercent());
     }
 }

@@ -51,8 +51,8 @@ public class Intake {
         pivot = pivotMotor;
         roller = rollerMotor;
         this.navx = navx;
-        pivot.config_kP(0, 1.2, 10);
-        pivot.config_kI(0, 0.001, 10);
+        pivot.config_kP(0, 1.4, 10);
+        pivot.config_kI(0, 0.002, 10);
         pivot.config_kD(0, 1.2, 10);
         pivot.config_kF(0, 0.0, 10);
 
@@ -98,7 +98,7 @@ public class Intake {
         if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             resetPID();
             this.targetPosition = targetPosition;
-            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.4, 2.0, 0.8);
+            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 2.4, 2.4, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             profileExecutor.initialize();
         }

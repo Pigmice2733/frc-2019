@@ -1,10 +1,18 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Manipulator {
+    private VictorSPX motor;
+
+    private AnalogInput IR;
+
     private DoubleSolenoid solenoid1;
     private DoubleSolenoid solenoid2;
     private State lastValue = State.Retract;
@@ -12,9 +20,17 @@ public class Manipulator {
 
     private Value solenoid1State, solenoid2State;
 
-    public Manipulator(DoubleSolenoid solenoid1, DoubleSolenoid solendoid2) {
+    private final int detectionThreshold = 815;
+
+    public Manipulator(DoubleSolenoid solenoid1, DoubleSolenoid solendoid2, VictorSPX motor, AnalogInput IR) {
         this.solenoid1 = solenoid1;
         this.solenoid2 = solendoid2;
+
+        this.motor = motor;
+
+        this.IR = IR;
+        this.IR.setAverageBits(2);
+        this.IR.setOversampleBits(0);
 
         solenoid1State = solenoid1.get();
         solenoid2State = solendoid2.get();
@@ -24,8 +40,8 @@ public class Manipulator {
         Extend, Retract, Slack
     }
 
-    public boolean hasHatch() {
-        return true;
+    public boolean hasBall() {
+        return IR.getAverageValue() > detectionThreshold;
     }
 
     public void setPosition(State value) {
@@ -48,6 +64,10 @@ public class Manipulator {
             }
             break;
         }
+    }
+
+    public void drive(double speed) {
+        motor.set(ControlMode.PercentOutput, speed);
     }
 
     private void slack() {
