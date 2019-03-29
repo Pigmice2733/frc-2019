@@ -16,8 +16,6 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.cscore.MjpegServer;
-import edu.wpi.cscore.UsbCamera;
-import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -127,10 +125,8 @@ public class Robot extends TimedRobot {
         Gains alignmentGains = new Gains(-0.35, 0.0, 0.0);
         visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
 
-        UsbCamera driverCam = new UsbCamera("DriverCam", 2);
-        driverCam.setVideoMode(PixelFormat.kMJPEG, 320, 240, 30);
-        camServer = new MjpegServer("DriverCam Server", 1180);
-        camServer.setSource(driverCam);
+        CameraServer server = CameraServer.getInstance();
+        server.startAutomaticCapture("Driver Cam", 0);
 
         new Thread(() -> {
             Timer.delay(5.0);
@@ -186,10 +182,8 @@ public class Robot extends TimedRobot {
         elevator.updateSensor();
         elevator.drive(-operatorJoystick.getY() * 0.4);
 
-        // arm.updateSensor();
-        // arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
-
-        arm.drive(0.0);
+        arm.updateSensor();
+        arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
 
         intake.updateSensor();
         intake.drive(0.0);
