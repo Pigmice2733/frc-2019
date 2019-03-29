@@ -15,7 +15,9 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.cscore.MjpegServer;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -29,7 +31,6 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Manipulator;
-import frc.robot.subsystems.Outtake;
 import frc.robot.subsystems.Stingers;
 import frc.robot.superstructure.Pose;
 import frc.robot.superstructure.SuperStructure;
@@ -48,7 +49,10 @@ public class Robot extends TimedRobot {
 
     boolean trimMode = false;
     double trimArmPose = 0.0;
+
+    MjpegServer camServer;
     Vision vision;
+
     PIDF visionAlignment;
     boolean visionEnabled = false;
 
@@ -62,7 +66,6 @@ public class Robot extends TimedRobot {
     Arm arm;
     Intake intake;
     Manipulator manipulator;
-    Outtake outtake;
 
     SuperStructure superStructure;
     Pose target;
@@ -87,9 +90,9 @@ public class Robot extends TimedRobot {
 
         elevator = new Elevator(elevatorWinch);
 
-        // Manipulator + Ball outtake
-        manipulator = new Manipulator(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5));
-        outtake = new Outtake(new VictorSPX(8));
+        // Lobster + Ball outtake
+        manipulator = new Manipulator(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5), new VictorSPX(8),
+                new AnalogInput(0));
 
         // Arm
         TalonSRX shoulder = new TalonSRX(7);
@@ -124,12 +127,18 @@ public class Robot extends TimedRobot {
 
         CameraServer server = CameraServer.getInstance();
         server.startAutomaticCapture("Driver Cam", 0);
+
+        new Thread(() -> {
+            Timer.delay(5.0);
+            vision.start();
+        }).start();
     }
 
     @Override
     public void autonomousInit() {
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
-        vision.start();
+        climbMode = false;
+        hatchMode = true;
     }
 
     @Override
@@ -157,6 +166,7 @@ public class Robot extends TimedRobot {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
         intake.setRoller(-driverJoystick.getY());
+        manipulator.drive(0);
 
         if (operatorJoystick.getRawButton(3)) {
             if (!climbMode) {
@@ -172,10 +182,8 @@ public class Robot extends TimedRobot {
         elevator.updateSensor();
         elevator.drive(-operatorJoystick.getY() * 0.4);
 
-        // arm.updateSensor();
-        // arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
-
-        arm.drive(0.0);
+        arm.updateSensor();
+        arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
 
         intake.updateSensor();
         intake.drive(0.0);
@@ -203,11 +211,6 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void disabledInit() {
-        vision.stop();
-    }
-
-    @Override
     public void disabledPeriodic() {
         elevator.updateSensor();
         arm.updateSensor();
@@ -215,12 +218,10 @@ public class Robot extends TimedRobot {
     }
 
     private void gamePeriodic() {
-        double visionOffset = vision.getOffset();
-
-        if (driverJoystick.getRawButton(1)) {
+        if (driverJoystick.getRawButton(1) && driverJoystick.getY() < 0.2) {
+            double visionOffset = vision.getOffset();
 
             if (visionOffset != -5.0 && visionOffset != 0.0) {
-
                 if (!visionEnabled) {
                     visionEnabled = true;
                     visionAlignment.initialize(visionOffset, Timer.getFPGATimestamp(), 0.0);
@@ -267,18 +268,19 @@ public class Robot extends TimedRobot {
             } else {
                 manipulator.setPosition(Manipulator.State.Retract);
             }
-            outtake.drive(0.0);
+            manipulator.drive(0.0);
+            intake.setRoller(0.0);
         } else if (!climbMode) {
             if (operatorJoystick.getRawButton(6)) {
                 // right bumper
-                intake.setRoller(0.6);
-                outtake.drive(-0.4);
+                intake.setRoller(0.8);
+                manipulator.drive(-0.4);
             } else if (operatorJoystick.getRawButton(5)) {
                 // left bumper
-                outtake.drive(0.6);
+                manipulator.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                outtake.drive(-0.20);
+                manipulator.drive(-0.25);
                 intake.setRoller(0.0);
             }
         }
@@ -336,7 +338,8 @@ public class Robot extends TimedRobot {
                 return SuperStructure.Target.CARGO_BOTTOM;
             } else if (operatorJoystick.getRawButton(2)) {
                 // B
-                return SuperStructure.Target.CARGO_M_BACK;
+                // return SuperStructure.Target.CARGO_M_BACK;
+                return SuperStructure.Target.CARGO_OUTTAKE_BOTTOM;
             } else if (operatorJoystick.getRawButton(3)) {
                 // X
                 return SuperStructure.Target.CARGO_M_FRONT;
@@ -351,15 +354,25 @@ public class Robot extends TimedRobot {
         }
 
         if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM)
-                || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE)) {
+                || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE)
+                || superStructure.getTarget().equals(SuperStructure.Target.CARGO_INTAKE_HIGH)) {
             if (operatorJoystick.getRawButton(6)) {
-                return SuperStructure.Target.CARGO_INTAKE;
+                if (operatorJoystick.getRawAxis(3) > 0.7) {
+                    return SuperStructure.Target.CARGO_INTAKE_HIGH;
+                } else {
+                    return SuperStructure.Target.CARGO_INTAKE;
+                }
+            } else if (!manipulator.hasBall()) {
+                return SuperStructure.Target.CARGO_BOTTOM;
+            } else if (superStructure.getPose().arm < 0.24) {
+                return SuperStructure.Target.CARGO_OUTTAKE_BOTTOM;
             } else {
                 return SuperStructure.Target.CARGO_BOTTOM;
             }
         }
 
         return null;
+
     }
 
     private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {

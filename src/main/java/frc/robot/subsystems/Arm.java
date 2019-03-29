@@ -14,14 +14,15 @@ import frc.robot.utils.Utils;
 
 public class Arm {
     public class Target {
-        public static final double START = -0.014;
+        public static final double START = -0.016;
         public static final double CLIMB = 0.0;
         public static final double DOWN_ANGLE = 0.02;
         public static final double UP_ANGLE = 0.955;
         public static final double UP_FLAT = 0.905;
-        public static final double DOWN_FLAT = 0.071;
-        public static final double DOWN_UP = 0.1;
-        public static final double DOWN_SLIGHT = 0.052;
+        public static final double DOWN_FLAT = 0.073;
+        public static final double DOWN_UP = 0.11;
+        public static final double DOWN_SLIGHT = 0.04;
+        public static final double CARGO_OUTTAKE = 0.24;
     }
 
     private TalonSRX pivot;
@@ -46,7 +47,7 @@ public class Arm {
     public Arm(TalonSRX pivotMotor) {
         pivot = pivotMotor;
         pivot.config_kP(0, 0.7, 10);
-        pivot.config_kI(0, 0.005, 10);
+        pivot.config_kI(0, 0.0, 10);
         pivot.config_kD(0, 0.0, 10);
         pivot.config_kF(0, 0.0, 10);
 
@@ -71,7 +72,7 @@ public class Arm {
         if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             resetPID();
             this.targetPosition = targetPosition;
-            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.4, 1.4);
+            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.55, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             profileExecutor.initialize();
         }
@@ -121,7 +122,7 @@ public class Arm {
 
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
-        double gravityCompensation = 0.1 * Math.cos(getRealAngle(currentPosition));
+        double gravityCompensation = 0.15 * Math.cos(getRealAngle(currentPosition));
         // setpointStreamer.send(sp.getPosition());
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + (kF * sp.getVelocity()));

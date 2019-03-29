@@ -54,6 +54,8 @@ dependencies {
     nativeZip wpi.deps.vendor.jni(wpi.platforms.roborio)
     nativeDesktopZip wpi.deps.vendor.jni(wpi.platforms.desktop)
 
+    testCompile 'org.hamcrest:hamcrest-core:1.3'
+    testCompile 'org.hamcrest:hamcrest-integration:1.3'
     testCompile 'junit:junit:4.12'
     testCompile group: 'org.jfree', name: 'jfreechart', version: '1.5.0'
 }

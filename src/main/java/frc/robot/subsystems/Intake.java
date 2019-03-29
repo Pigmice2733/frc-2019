@@ -18,9 +18,10 @@ import frc.robot.utils.Utils;
 public class Intake {
     public class Target {
         public static final double START = 0.0;
-        public static final double INTAKE = 0.545;
-        public static final double STOWED_UP = 0.365;
-        public static final double STOWED_BACK = 0.03;
+        public static final double INTAKE = 0.56;
+        public static final double STOWED_FRONT = 0.365;
+        public static final double STOWED_UP = 0.245;
+        public static final double STOWED_BACK = 0.04;
         public static final double CLIMB = 0.39;
     }
 
@@ -50,8 +51,8 @@ public class Intake {
         pivot = pivotMotor;
         roller = rollerMotor;
         this.navx = navx;
-        pivot.config_kP(0, 1.2, 10);
-        pivot.config_kI(0, 0.001, 10);
+        pivot.config_kP(0, 1.4, 10);
+        pivot.config_kI(0, 0.002, 10);
         pivot.config_kD(0, 1.2, 10);
         pivot.config_kF(0, 0.0, 10);
 
@@ -84,7 +85,7 @@ public class Intake {
     }
 
     public void levelRobot() {
-        if(!levelling) {
+        if (!levelling) {
             startBalancing();
             levelling = true;
         }
@@ -97,7 +98,7 @@ public class Intake {
         if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             resetPID();
             this.targetPosition = targetPosition;
-            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 1.4, 2.0, 0.8);
+            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 2.4, 2.4, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             profileExecutor.initialize();
         }
