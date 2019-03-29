@@ -35,6 +35,7 @@ public class Intake {
     private Double currentPosition;
 
     private Bounds sensorBounds = new Bounds(0, 2640.0);
+    private Bounds climbRange = new Bounds(0.39, 2.0);
 
     private StaticProfileExecutor profileExecutor;
     // private NTStreamer<Double> positionStreamer;
@@ -90,7 +91,14 @@ public class Intake {
             levelling = true;
         }
         double output = -balancer.calculateOutput(navx.getRoll(), -3, Timer.getFPGATimestamp());
-        pivot.set(ControlMode.PercentOutput, output);
+        double position = getPosition();
+
+        // Stop balancing if intake reaches edges of climb range
+        if (climbRange.contains(position)) {
+            pivot.set(ControlMode.PercentOutput, output);
+        } else {
+            pivot.set(ControlMode.PercentOutput, 0.0);
+        }
     }
 
     public void setTargetPosition(double targetPosition) {
