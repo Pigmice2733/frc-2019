@@ -105,9 +105,7 @@ public class Robot extends TimedRobot {
         TalonSRX intakePivot = new TalonSRX(9);
         VictorSPX intakeFollower = new VictorSPX(10);
         TalonSRX intakeRoller = new TalonSRX(11);
-        configureFollowerMotor(intakeFollower, intakePivot);
-        intakeFollower.setInverted(InvertType.OpposeMaster);
-        intake = new Intake(intakePivot, intakeRoller, navx);
+        intake = new Intake(intakePivot, intakeFollower, intakeRoller, navx);
 
         // Stinger pistons
         stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
@@ -239,21 +237,6 @@ public class Robot extends TimedRobot {
             drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
         }
 
-        if (operatorJoystick.getRawButton(8)) {
-            if (!trimMode) {
-                trimMode = true;
-                trimArmPose = arm.getPosition();
-            }
-            arm.drive(-0.2 * operatorJoystick.getY());
-            return;
-
-        } else {
-            if (trimMode) {
-                arm.setPosition(trimArmPose);
-                trimMode = false;
-            }
-        }
-
         if (modeToggle.get()) {
             hatchMode = !hatchMode;
         }
@@ -283,6 +266,8 @@ public class Robot extends TimedRobot {
                 manipulator.drive(-0.25);
                 intake.setRoller(0.0);
             }
+        } else {
+            manipulator.drive(0.0);
         }
 
         if (climbToggle.get()) {
@@ -314,6 +299,21 @@ public class Robot extends TimedRobot {
             }
 
             stingers.retract();
+        }
+
+        if (operatorJoystick.getRawButton(8)) {
+            if (!trimMode) {
+                trimMode = true;
+                trimArmPose = arm.getPosition();
+            }
+            arm.drive(-0.2 * operatorJoystick.getY());
+            return;
+
+        } else {
+            if (trimMode) {
+                arm.setPosition(trimArmPose);
+                trimMode = false;
+            }
         }
     }
 

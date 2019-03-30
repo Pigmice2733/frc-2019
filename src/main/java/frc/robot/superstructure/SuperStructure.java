@@ -190,12 +190,12 @@ public class SuperStructure {
         if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.CARGO_OUTTAKE)) {
             if (current.arm < (target.arm - 0.035)) {
                 setState("L1");
-                return target.setIntakeMin(0.625);
+                return target.setIntakeMin(0.625).setElevatorMin(0.2);
             }
         }
 
         if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.DOWN_UP)) {
-            if (current.arm < (target.arm - 0.035)) {
+            if (current.arm < (target.arm - 0.025)) {
                 setState("L2");
                 return target.setElevatorMin(0.2);
             }
