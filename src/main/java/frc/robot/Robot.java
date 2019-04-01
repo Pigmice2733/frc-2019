@@ -10,10 +10,12 @@ package frc.robot;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.IMotorControllerEnhanced;
-import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.cscore.MjpegServer;
 import edu.wpi.first.cameraserver.CameraServer;
@@ -102,10 +104,15 @@ public class Robot extends TimedRobot {
         configCurrentLimit(shoulder);
 
         // Ball intake
-        TalonSRX intakePivot = new TalonSRX(9);
-        VictorSPX intakeFollower = new VictorSPX(10);
+        CANSparkMax intakePivot = new CANSparkMax(9, MotorType.kBrushless);
+        CANSparkMax intakeFollower = new CANSparkMax(10, MotorType.kBrushless);
+        intakeFollower.follow(intakePivot, true);
+
+        configureNeo(intakePivot);
+        configureNeo(intakeFollower);
+
         TalonSRX intakeRoller = new TalonSRX(11);
-        intake = new Intake(intakePivot, intakeFollower, intakeRoller, navx);
+        intake = new Intake(intakePivot, intakeRoller, intakeRoller, navx);
 
         // Stinger pistons
         stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
@@ -415,5 +422,15 @@ public class Robot extends TimedRobot {
         motor.configVoltageCompSaturation(11.0, 10);
         motor.enableVoltageCompensation(true);
         motor.configVoltageMeasurementFilter(32, 10);
+    }
+
+    private void configureNeo(CANSparkMax neo) {
+        neo.restoreFactoryDefaults();
+
+        neo.setMotorType(MotorType.kBrushless);
+        neo.setIdleMode(IdleMode.kBrake);
+        neo.setOpenLoopRampRate(1.0);
+        neo.setSmartCurrentLimit(25, 2, 25);
+        neo.setSecondaryCurrentLimit(30, 2);
     }
 }
