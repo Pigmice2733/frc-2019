@@ -41,6 +41,16 @@ public class Vision {
         return targetOffset;
     }
 
+    public void clear() {
+        if(port == null) {
+            initPort();
+        }
+
+        if(port != null) {
+            port.readString();
+        }
+    }
+
     private Thread createThread() {
         return new Thread(() -> {
             while (!initialized && !Thread.interrupted()) {

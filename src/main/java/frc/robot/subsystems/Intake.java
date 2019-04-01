@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.Timer;
@@ -19,14 +20,17 @@ public class Intake {
     public class Target {
         public static final double START = 0.0;
         public static final double INTAKE = 0.56;
-        public static final double STOWED_FRONT = 0.365;
+        public static final double STOWED_FRONT = 0.375;
         public static final double STOWED_UP = 0.245;
         public static final double STOWED_BACK = 0.04;
         public static final double CLIMB = 0.39;
     }
 
     private TalonSRX pivot;
+    private VictorSPX follower;
     private TalonSRX roller;
+
+    private double torqueRatio = 1.25;
 
     private boolean levelling = false;
 
@@ -35,6 +39,7 @@ public class Intake {
     private Double currentPosition;
 
     private Bounds sensorBounds = new Bounds(0, 2640.0);
+    private Bounds climbRange = new Bounds(0.39, 2.0);
 
     private StaticProfileExecutor profileExecutor;
     // private NTStreamer<Double> positionStreamer;
@@ -47,8 +52,9 @@ public class Intake {
 
     private PIDF balancer;
 
-    public Intake(TalonSRX pivotMotor, TalonSRX rollerMotor, AHRS navx) {
+    public Intake(TalonSRX pivotMotor, VictorSPX followerMotor, TalonSRX rollerMotor, AHRS navx) {
         pivot = pivotMotor;
+        follower = followerMotor;
         roller = rollerMotor;
         this.navx = navx;
         pivot.config_kP(0, 1.4, 10);
@@ -72,6 +78,7 @@ public class Intake {
     public void drive(double percent) {
         // outputStreamer.send(percent);
         pivot.set(ControlMode.PercentOutput, percent);
+        follower.set(ControlMode.PercentOutput, -torqueRatio * percent);
         levelling = false;
         // positionStreamer.send(getPosition());
     }
@@ -89,8 +96,12 @@ public class Intake {
             startBalancing();
             levelling = true;
         }
-        double output = -balancer.calculateOutput(navx.getRoll(), -3, Timer.getFPGATimestamp());
+
+        double output = -balancer.calculateOutput(navx.getRoll(), -14, Timer.getFPGATimestamp());
+        double position = getPosition();
+
         pivot.set(ControlMode.PercentOutput, output);
+        follower.set(ControlMode.PercentOutput, -torqueRatio * output);
     }
 
     public void setTargetPosition(double targetPosition) {
@@ -143,6 +154,7 @@ public class Intake {
         // setpointStreamer.send(sp.getPosition());
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + (kF * sp.getVelocity()));
+        follower.set(ControlMode.PercentOutput, -torqueRatio * pivot.getMotorOutputPercent());
         // outputStreamer.send(pivot.getMotorOutputPercent());
     }
 }

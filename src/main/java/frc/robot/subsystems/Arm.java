@@ -21,7 +21,7 @@ public class Arm {
         public static final double UP_FLAT = 0.905;
         public static final double DOWN_FLAT = 0.073;
         public static final double DOWN_UP = 0.11;
-        public static final double DOWN_SLIGHT = 0.04;
+        public static final double DOWN_SLIGHT = 0.048;
         public static final double CARGO_OUTTAKE = 0.24;
     }
 
