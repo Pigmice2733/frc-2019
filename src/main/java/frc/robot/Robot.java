@@ -125,7 +125,6 @@ public class Robot extends TimedRobot {
         modeToggle = new ButtonDebouncer(operatorJoystick, 9);
         climbToggle = new ButtonDebouncer(operatorJoystick, 10);
 
-        vision = new Vision(this::isEnabled);
         Bounds visionOutputBounds = new Bounds(-0.6, 0.6);
         Gains alignmentGains = new Gains(-0.35, 0.0, 0.0);
         visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
@@ -135,7 +134,7 @@ public class Robot extends TimedRobot {
 
         new Thread(() -> {
             Timer.delay(5.0);
-            vision.start();
+            Vision.start();
         }).start();
     }
 
@@ -159,11 +158,6 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         gamePeriodic();
-    }
-
-    @Override
-    public void testInit() {
-        vision.start();
     }
 
     @Override
@@ -224,7 +218,7 @@ public class Robot extends TimedRobot {
 
     private void gamePeriodic() {
         if (driverJoystick.getRawButton(1) && driverJoystick.getY() < 0.2) {
-            double visionOffset = vision.getOffset();
+            double visionOffset = Vision.getOffset();
 
             if (visionOffset != -5.0 && visionOffset != 0.0) {
                 if (!visionEnabled) {
