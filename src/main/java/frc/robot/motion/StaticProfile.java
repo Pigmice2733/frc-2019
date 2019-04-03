@@ -132,7 +132,8 @@ public class StaticProfile {
     public void reset() {
         previousDistance = startingPosition;
         currentChunk = 0;
-        chunkEndTime = chunks.get(0).getDuration();
+        chunk = chunks.get(0);
+        chunkEndTime = chunk.getDuration();
         chunkStartTime = 0.0;
     }
 
