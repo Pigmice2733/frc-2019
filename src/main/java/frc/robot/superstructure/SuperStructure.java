@@ -16,12 +16,14 @@ public class SuperStructure {
 
     private Pose finalTarget;
 
+    private static final boolean antiCollisionLogging = false;
+
     private static final Bounds intakeCollision = new Bounds(0.115, 0.47);
 
     private static String lastState = "S";
 
     public static void setState(String state) {
-        if (!state.equals(lastState)) {
+        if (!state.equals(lastState) && antiCollisionLogging) {
             lastState = state;
             System.out.println(lastState);
         }
