@@ -10,10 +10,12 @@ package frc.robot;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.IMotorController;
 import com.ctre.phoenix.motorcontrol.IMotorControllerEnhanced;
-import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.cscore.MjpegServer;
 import edu.wpi.first.cameraserver.CameraServer;
@@ -75,8 +77,10 @@ public class Robot extends TimedRobot {
         // Gyro
         navx = new AHRS(SPI.Port.kMXP);
 
+        TalonSRX leftDrive = new TalonSRX(3);
+
         // Drivetrain
-        configureDrivetrain(3, 1, 4, 2);
+        configureDrivetrain(leftDrive, new TalonSRX(1), new VictorSPX(4), new VictorSPX(2));
 
         // Elevator
         TalonSRX elevatorWinch = new TalonSRX(5);
@@ -102,10 +106,15 @@ public class Robot extends TimedRobot {
         configCurrentLimit(shoulder);
 
         // Ball intake
-        TalonSRX intakePivot = new TalonSRX(9);
-        VictorSPX intakeFollower = new VictorSPX(10);
+        CANSparkMax intakePivot = new CANSparkMax(9, MotorType.kBrushless);
+        CANSparkMax intakeFollower = new CANSparkMax(10, MotorType.kBrushless);
+        intakeFollower.follow(intakePivot, true);
+
+        configureNeo(intakePivot);
+        configureNeo(intakeFollower);
+
         TalonSRX intakeRoller = new TalonSRX(11);
-        intake = new Intake(intakePivot, intakeFollower, intakeRoller, navx);
+        intake = new Intake(intakePivot, leftDrive, intakeRoller, navx);
 
         // Stinger pistons
         stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
@@ -118,7 +127,6 @@ public class Robot extends TimedRobot {
         modeToggle = new ButtonDebouncer(operatorJoystick, 9);
         climbToggle = new ButtonDebouncer(operatorJoystick, 10);
 
-        vision = new Vision(this::isEnabled);
         Bounds visionOutputBounds = new Bounds(-0.6, 0.6);
         Gains alignmentGains = new Gains(-0.35, 0.0, 0.0);
         visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
@@ -128,7 +136,7 @@ public class Robot extends TimedRobot {
 
         new Thread(() -> {
             Timer.delay(5.0);
-            vision.start();
+            Vision.start();
         }).start();
     }
 
@@ -155,11 +163,6 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void testInit() {
-        vision.start();
-    }
-
-    @Override
     public void testPeriodic() {
         drivetrain.arcadeDrive(-driverJoystick.getY(), driverJoystick.getX());
 
@@ -181,11 +184,12 @@ public class Robot extends TimedRobot {
         elevator.drive(-operatorJoystick.getY() * 0.4);
 
         arm.updateSensor();
-        arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
+        // arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
+        arm.drive(0.0);
 
         intake.updateSensor();
-        intake.drive(0.0);
-        // intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
+        // intake.drive(0.0);
+        intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
 
         // if (operatorJoystick.getRawButton(1)) {
         // outtake.drive(-0.15);
@@ -216,8 +220,12 @@ public class Robot extends TimedRobot {
     }
 
     private void gamePeriodic() {
+        elevator.updateSensor();
+        arm.updateSensor();
+        intake.updateSensor();
+
         if (driverJoystick.getRawButton(1) && driverJoystick.getY() < 0.2) {
-            double visionOffset = vision.getOffset();
+            double visionOffset = Vision.getOffset();
 
             if (visionOffset != -5.0 && visionOffset != 0.0) {
                 if (!visionEnabled) {
@@ -375,17 +383,12 @@ public class Robot extends TimedRobot {
 
     }
 
-    private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {
-        TalonSRX leftDrive = new TalonSRX(frontLeft);
-        TalonSRX rightDrive = new TalonSRX(frontRight);
-
+    private void configureDrivetrain(TalonSRX leftDrive, TalonSRX rightDrive, VictorSPX leftFollower,
+            VictorSPX rightFollower) {
         configureDriveMotor(leftDrive);
         configureDriveMotor(rightDrive);
 
         rightDrive.setInverted(true);
-
-        VictorSPX leftFollower = new VictorSPX(backLeft);
-        VictorSPX rightFollower = new VictorSPX(backRight);
 
         configureFollowerMotor(leftFollower, leftDrive);
         configureFollowerMotor(rightFollower, rightDrive);
@@ -415,5 +418,15 @@ public class Robot extends TimedRobot {
         motor.configVoltageCompSaturation(11.0, 10);
         motor.enableVoltageCompensation(true);
         motor.configVoltageMeasurementFilter(32, 10);
+    }
+
+    private void configureNeo(CANSparkMax neo) {
+        neo.restoreFactoryDefaults();
+
+        neo.setMotorType(MotorType.kBrushless);
+        neo.setIdleMode(IdleMode.kBrake);
+        neo.setOpenLoopRampRate(1.0);
+        neo.setSmartCurrentLimit(25, 2, 25);
+        neo.setSecondaryCurrentLimit(30, 2);
     }
 }

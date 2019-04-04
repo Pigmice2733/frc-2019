@@ -28,11 +28,11 @@ public class StaticProfileTest {
     public static class MaxVelocityEqualityTest {
         // Check to make sure comparisons to maximum velocity handled floating point
         // error
-        private static StaticProfile fpe;
+        private static StaticProfile fpe = new StaticProfile(0.0, 0.7789, 0.9, 0.65, 1.1, 1.1);
 
         @Before
         public void setup() {
-            fpe = new StaticProfile(0.0, 0.7789, 0.9, 0.65, 1.1, 1.1);
+            fpe.reset();
         }
 
         @Test
@@ -43,18 +43,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            fpe = new StaticProfile(0.0, 0.7789, 0.9, 0.65, 1.1, 1.1);
+            fpe.reset();
             plotProfile(fpe, "fpe");
         }
     }
 
     public static class TrapezoidalTest {
         // Pure trapezoid
-        private static StaticProfile trapezoidalProfile;
+        private static StaticProfile trapezoidalProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
 
         @Before
         public void setup() {
-            trapezoidalProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
+            trapezoidalProfile.reset();
         }
 
         @Test
@@ -123,18 +123,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            trapezoidalProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
+            trapezoidalProfile.reset();
             plotProfile(trapezoidalProfile, "trapezoid");
         }
     }
 
     public static class WrongDirectionTest {
         // Trapezoid with leading wrong direction
-        private static StaticProfile wrongDirectionProfile;
+        private static StaticProfile wrongDirectionProfile = new StaticProfile(-1, 0.5, 16.0, 4.0, 2.0, 1.0);
 
         @Before
         public void setup() {
-            wrongDirectionProfile = new StaticProfile(-1, 0.5, 16.0, 4.0, 2.0, 1.0);
+            wrongDirectionProfile.reset();
         }
 
         @Test
@@ -204,18 +204,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            wrongDirectionProfile = new StaticProfile(-1, 0.5, 16.0, 4.0, 2.0, 1.0);
+            wrongDirectionProfile.reset();
             plotProfile(wrongDirectionProfile, "wrongDir");
         }
     }
 
     public static class TriangularTest {
         // Pure triangle
-        private static StaticProfile triangularProfile;
+        private static StaticProfile triangularProfile = new StaticProfile(0.0, 0.0, 35.69, 9.0, 2.0, 2.15);
 
         @Before
         public void setup() {
-            triangularProfile = new StaticProfile(0.0, 0.0, 35.69, 9.0, 2.0, 2.15);
+            triangularProfile.reset();
         }
 
         @Test
@@ -263,18 +263,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            triangularProfile = new StaticProfile(0.0, 0.0, 35.69, 9.0, 2.0, 2.15);
+            triangularProfile.reset();
             plotProfile(triangularProfile, "triangle");
         }
     }
 
     public static class PartialTriangleTest {
         // Starts partway into triangle, leading corner chopped off
-        private static StaticProfile quadrilateralProfile;
+        private static StaticProfile quadrilateralProfile = new StaticProfile(1.0, 0.0, 5.5, 5.0, 1.0, 0.5);
 
         @Before
         public void setup() {
-            quadrilateralProfile = new StaticProfile(1.0, 0.0, 5.5, 5.0, 1.0, 0.5);
+            quadrilateralProfile.reset();
         }
 
         @Test
@@ -322,18 +322,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            quadrilateralProfile = new StaticProfile(1.0, 0.0, 5.5, 5.0, 1.0, 0.5);
+            quadrilateralProfile.reset();
             plotProfile(quadrilateralProfile, "partialTriangle");
         }
     }
 
     public static class ReverseTriangularTest {
         // Negative triangle profile, reverse direction
-        private static StaticProfile reverseTriangleProfile;
+        private static StaticProfile reverseTriangleProfile = new StaticProfile(0.0, 0.0, -35.69, 9.0, 2.0, 2.15);
 
         @Before
         public void setup() {
-            reverseTriangleProfile = new StaticProfile(0.0, 0.0, -35.69, 9.0, 2.0, 2.15);
+            reverseTriangleProfile.reset();
         }
 
         @Test
@@ -381,18 +381,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            reverseTriangleProfile = new StaticProfile(0.0, 0.0, -35.69, 9.0, 2.0, 2.15);
+            reverseTriangleProfile.reset();
             plotProfile(reverseTriangleProfile, "reverseTriangle");
         }
     }
 
     public static class PartialTrapezoidTest {
         // Starts partway into trapezoid, leading corner chopped off
-        private static StaticProfile pentagonProfile;
+        private static StaticProfile pentagonProfile = new StaticProfile(2.5, 0.0, 11.25, 5.0, 2.5, 5.0);
 
         @Before
         public void setup() {
-            pentagonProfile = new StaticProfile(2.5, 0.0, 11.25, 5.0, 2.5, 5.0);
+            pentagonProfile.reset();
         }
 
         @Test
@@ -446,18 +446,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            pentagonProfile = new StaticProfile(2.5, 0.0, 11.25, 5.0, 2.5, 5.0);
+            pentagonProfile.reset();
             plotProfile(pentagonProfile, "partialTrapezoid");
         }
     }
 
     public static class DecelerationTest {
         // Needs to decelerate directly from start of profile
-        private static StaticProfile decelerationProfile;
+        private static StaticProfile decelerationProfile = new StaticProfile(4.0, 4.0, 12.0, 6.0, 2.0, 1.0);
 
         @Before
         public void setup() {
-            decelerationProfile = new StaticProfile(4.0, 4.0, 12.0, 6.0, 2.0, 1.0);
+            decelerationProfile.reset();
         }
 
         @Test
@@ -492,18 +492,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            decelerationProfile = new StaticProfile(4.0, 4.0, 12.0, 6.0, 2.0, 1.0);
+            decelerationProfile.reset();
             plotProfile(decelerationProfile, "deceleration");
         }
     }
 
     public static class MaxSpeedToDecelerationTest {
         // Starts at max speed, decelerates after max speed chunk
-        private static StaticProfile maxSpeedToDecelerationProfile;
+        private static StaticProfile maxSpeedToDecelerationProfile = new StaticProfile(8.0, 0.0, 40.0, 8.0, 2.0, 1.0);
 
         @Before
         public void setup() {
-            maxSpeedToDecelerationProfile = new StaticProfile(8.0, 0.0, 40.0, 8.0, 2.0, 1.0);
+            maxSpeedToDecelerationProfile.reset();
         }
 
         @Test
@@ -549,18 +549,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            maxSpeedToDecelerationProfile = new StaticProfile(8.0, 0.0, 40.0, 8.0, 2.0, 1.0);
+            maxSpeedToDecelerationProfile.reset();
             plotProfile(maxSpeedToDecelerationProfile, "maxSpeedDecel");
         }
     }
 
     public static class HighSpeedDecelerationTest {
         // Starts above max speed, decelerates to max speed, and then to zero
-        private static StaticProfile highSpeedDecelerationProfile;
+        private static StaticProfile highSpeedDecelerationProfile = new StaticProfile(10.0, 0.0, 58.0, 8.0, 2.0, 1.0);
 
         @Before
         public void setup() {
-            highSpeedDecelerationProfile = new StaticProfile(10.0, 0.0, 58.0, 8.0, 2.0, 1.0);
+            highSpeedDecelerationProfile.reset();
         }
 
         @Test
@@ -618,18 +618,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            highSpeedDecelerationProfile = new StaticProfile(10.0, 0.0, 58.0, 8.0, 2.0, 1.0);
+            highSpeedDecelerationProfile.reset();
             plotProfile(highSpeedDecelerationProfile, "highSpeedDecel");
         }
     }
 
     public static class OvershootFromMaxSpeedTest {
         // Starts at max speed, overshoots while decelerating - needs to backtrack
-        private static StaticProfile overshootFromMaxSpeed;
+        private static StaticProfile overshootFromMaxSpeed = new StaticProfile(10.0, 0.0, 34.0, 10.0, 1.0, 1.0);
 
         @Before
         public void setup() {
-            overshootFromMaxSpeed = new StaticProfile(10.0, 0.0, 34.0, 10.0, 1.0, 1.0);
+            overshootFromMaxSpeed.reset();
         }
 
         @Test
@@ -673,18 +673,18 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            overshootFromMaxSpeed = new StaticProfile(10.0, 0.0, 34.0, 10.0, 1.0, 1.0);
+            overshootFromMaxSpeed.reset();
             plotProfile(overshootFromMaxSpeed, "overshootMaxSpeed");
         }
     }
 
     public static class HighSpeedOvershootTest {
         // Starts at max speed, overshoots while decelerating - needs to backtrack
-        private static StaticProfile highSpeedOvershoot;
+        private static StaticProfile highSpeedOvershoot = new StaticProfile(50.0, 0.0, 1000.0, 10.0, 1.0, 1.0);
 
         @Before
         public void setup() {
-            highSpeedOvershoot = new StaticProfile(50.0, 0.0, 1000.0, 10.0, 1.0, 1.0);
+            highSpeedOvershoot.reset();
         }
 
         @Test
@@ -732,7 +732,7 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            highSpeedOvershoot = new StaticProfile(50.0, 0.0, 1000.0, 10.0, 1.0, 1.0);
+            highSpeedOvershoot.reset();
             plotProfile(highSpeedOvershoot, "highspeedOvershoot");
         }
     }
@@ -743,7 +743,7 @@ public class StaticProfileTest {
 
         @Before
         public void setup() {
-            overrunTimeProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
+            overrunTimeProfile.reset();
         }
 
         @Test
@@ -813,7 +813,7 @@ public class StaticProfileTest {
 
         @AfterClass
         public static void plot() {
-            overrunTimeProfile = new StaticProfile(0.0, 0.0, 16.0, 4.0, 2.0, 1.0);
+            overrunTimeProfile.reset();
             plotProfile(overrunTimeProfile, "overrunTime", 12.0, 0.025);
         }
     }

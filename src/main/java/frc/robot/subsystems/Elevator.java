@@ -4,7 +4,6 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
-import edu.wpi.first.wpilibj.Timer;
 import frc.robot.motion.Setpoint;
 import frc.robot.motion.StaticProfile;
 import frc.robot.motion.execution.StaticProfileExecutor;
@@ -48,7 +47,6 @@ public class Elevator {
     }
 
     public void drive(double percent) {
-        // outputStreamer.send(percent);
         winch.set(ControlMode.PercentOutput, percent);
     }
 
@@ -57,9 +55,9 @@ public class Elevator {
             resetPID();
             StaticProfile profile;
             if (this.targetPosition != null && this.targetPosition > targetPosition) {
-                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 2.0, 1.6, 1.6);
+                profile = new StaticProfile(getVelocity(), currentPosition, targetPosition, 2.0, 1.6, 1.6);
             } else {
-                profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 2.0, 1.6, 1.6);
+                profile = new StaticProfile(getVelocity(), currentPosition, targetPosition, 2.0, 1.6, 1.6);
             }
             this.targetPosition = targetPosition;
             profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
@@ -84,13 +82,9 @@ public class Elevator {
 
     public void updateSensor() {
         currentPosition = getPosition();
-        // positionStreamer.send(currentPosition);
-        // targetStreamer.send(this.targetPosition);
     }
 
     public void update() {
-        // updateSensor();
-
         profileExecutor.updateNoEnd();
     }
 
@@ -100,9 +94,7 @@ public class Elevator {
 
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
-        // setpointStreamer.send(sp.getPosition());
         winch.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + kF * sp.getVelocity());
-        // outputStreamer.send(winch.getMotorOutputPercent());
     }
 }

@@ -1,77 +1,85 @@
 package frc.robot;
 
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 import edu.wpi.first.wpilibj.SerialPort;
-import edu.wpi.first.wpilibj.Timer;
 
 public class Vision {
-    private SerialPort port;
-    private Thread thread;
-    private StatusCheck enabledStatus;
-    private boolean initialized = false;
+    private static SerialPort port;
 
-    private String remainingInput = "";
-    private volatile double targetOffset = 0.0;
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, new ThreadFactory() {
+        public Thread newThread(Runnable r) {
+            Thread t = Executors.defaultThreadFactory().newThread(r);
+            t.setDaemon(true);
+            return t;
+        }
+    });
 
-    public interface StatusCheck {
-        public boolean get();
-    }
+    private static volatile ScheduledFuture<?> self;
+    private static boolean initialized = false;
+    private static boolean enabled;
 
-    public Vision(StatusCheck enabled) {
-        enabledStatus = enabled;
+    private static String remainingInput = "";
+    private static volatile double targetOffset = 0.0;
 
-        thread = createThread();
-    }
-
-    public void start() {
-        if (!thread.isAlive()) {
-            thread.start();
+    public static void start() {
+        if (!enabled) {
+            enabled = true;
+            self = scheduler.scheduleAtFixedRate(Vision::update, 1000, 5, TimeUnit.MILLISECONDS);
         }
     }
 
-    public void stop() {
-        thread.interrupt();
-        thread = createThread();
+    public static void stop() {
+        enabled = false;
     }
 
-    private synchronized void setTarget(double targetOffset) {
-        this.targetOffset = targetOffset;
-    }
-
-    public synchronized double getOffset() {
+    public synchronized static double getOffset() {
         return targetOffset;
     }
 
-    public void clear() {
-        if(port == null) {
+    public static void clearUsbBuffer() {
+        if (port == null) {
             initPort();
         }
 
-        if(port != null) {
+        if (port != null) {
             port.readString();
         }
     }
 
-    private Thread createThread() {
-        return new Thread(() -> {
-            while (!initialized && !Thread.interrupted()) {
-                Timer.delay(0.2);
-                initPort();
-            }
-
-            while (!Thread.interrupted() && initialized) {
-                try {
-                    parseInput(remainingInput + port.readString());
-                } catch (Exception e) {
-                    System.out.println(e.toString());
-                    initPort();
-                    initialized = true;
-                }
-                Timer.delay(0.034);
-            }
-        });
+    private synchronized static void setTarget(double targetOffset) {
+        Vision.targetOffset = targetOffset;
     }
 
-    private void parseInput(String input) {
+    private static void update() {
+        if (!enabled) {
+            self.cancel(false);
+            self = null;
+            port = null;
+            return;
+        }
+
+        if (!initialized) {
+            initPort();
+        } else {
+            try {
+                parseInput(remainingInput + port.readString());
+            } catch (Exception e) {
+                System.out.println(e.toString());
+                initPort();
+                initialized = true;
+            }
+
+            port.writeString("set-mask on\n");
+        }
+    }
+
+    private static void parseInput(String input) {
         int offsetIndex = input.lastIndexOf("OFF");
         int endIndex = input.lastIndexOf("END");
 
@@ -83,19 +91,19 @@ public class Vision {
         }
     }
 
-    private void initPort() {
+    private static void initPort() {
         if (port != null) {
             try {
-                port.close();
+                port.reset();
             } catch (Exception e) {
             }
-        }
-
-        try {
-            port = new SerialPort(115200, SerialPort.Port.kUSB1);
-            initialized = true;
-        } catch (Exception e) {
-            initialized = false;
+        } else {
+            try {
+                port = new SerialPort(115200, SerialPort.Port.kUSB1);
+                initialized = true;
+            } catch (Exception e) {
+                initialized = false;
+            }
         }
     }
 }
