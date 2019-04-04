@@ -54,7 +54,6 @@ public class SuperStructure {
     public void initialize(Pose target) {
         elevator.resetPID();
         arm.resetPID();
-        intake.resetPID();
 
         target(target);
     }

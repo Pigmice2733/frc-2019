@@ -32,12 +32,16 @@ public class Intake {
     private TalonSRX roller;
 
     private boolean levelling = false;
+    private boolean rateExceeded = false;
 
     private Double targetPosition;
     private Double currentPosition;
 
     private Bounds sensorBounds = new Bounds(0, 2640.0);
     private Bounds climbRange = new Bounds(0.39, 2.0);
+
+    private double maximumRate = 0.001;
+    private double positionDelta;
 
     private AHRS navx;
 
@@ -63,6 +67,8 @@ public class Intake {
         // outputStreamer = new NTStreamer<>("intake", "output");
 
         zeroSensor();
+        currentPosition = Target.STOWED_BACK;
+        positionDelta = 0.0;
         setTargetPosition(Target.STOWED_BACK);
 
         Gains gains = new Gains(0.15, 0.0, 0.0);
@@ -77,6 +83,7 @@ public class Intake {
     public void drive(double percent) {
         pivot.set(percent);
         levelling = false;
+        rateExceeded = false;
     }
 
     public void setRoller(double percent) {
@@ -95,16 +102,26 @@ public class Intake {
 
         double output = -balancePID.calculateOutput(navx.getRoll(), -14, Timer.getFPGATimestamp());
 
-        pivot.set(output);
+        if (positionDelta > maximumRate || (currentPosition < climbRange.min() && output < 0.0)
+                || (currentPosition > climbRange.max() && output > 0.0)) {
+            rateExceeded = true;
+            pivot.set(0.0);
+        } else {
+            if (rateExceeded) {
+                rateExceeded = false;
+                startBalancing();
+            }
+            pivot.set(output);
+        }
     }
 
     public void setTargetPosition(double targetPosition) {
-        levelling = false;
-        if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
-            resetPID();
+        if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2 || levelling) {
+            levelling = false;
             this.targetPosition = targetPosition;
-            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 2.4, 2.4, 1.4);
+            StaticProfile profile = new StaticProfile(getVelocity(), currentPosition, targetPosition, 2.4, 2.4, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
+            positionPID.initialize(currentPosition, Timer.getFPGATimestamp(), 0.0);
             profileExecutor.initialize();
         }
     }
@@ -126,17 +143,24 @@ public class Intake {
     }
 
     public void updateSensor() {
+        double previousPosition = currentPosition;
         currentPosition = getPosition();
+        positionDelta = Math.abs(currentPosition - previousPosition);
     }
 
     public void update() {
-        updateSensor();
         levelling = false;
-        profileExecutor.updateNoEnd();
-    }
 
-    public void resetPID() {
-        sensor.setIntegralAccumulator(0.0, 0, 10);
+        if (positionDelta < maximumRate) {
+            if (rateExceeded) {
+                rateExceeded = false;
+                profileExecutor = null;
+                setTargetPosition(targetPosition);
+            }
+            profileExecutor.updateNoEnd();
+        } else {
+            rateExceeded = true;
+        }
     }
 
     private void output(Setpoint sp) {

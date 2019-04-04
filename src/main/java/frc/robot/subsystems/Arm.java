@@ -64,7 +64,6 @@ public class Arm {
     }
 
     public void drive(double percent) {
-        // outputStreamer.send(percent);
         pivot.set(ControlMode.PercentOutput, percent);
     }
 
@@ -72,7 +71,7 @@ public class Arm {
         if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2) {
             resetPID();
             this.targetPosition = targetPosition;
-            StaticProfile profile = new StaticProfile(getVelocity(), getPosition(), targetPosition, 0.65, 1.55, 1.4);
+            StaticProfile profile = new StaticProfile(getVelocity(), currentPosition, targetPosition, 0.65, 1.55, 1.4);
             profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             profileExecutor.initialize();
         }
@@ -101,9 +100,6 @@ public class Arm {
 
     public void updateSensor() {
         currentPosition = getPosition();
-        // positionStreamer.send(currentPosition);
-        // targetStreamer.send(this.targetPosition);
-        // angleStreamer.send(getRealAngle(currentPosition));
     }
 
     private double getRealAngle(Double position) {
@@ -111,8 +107,6 @@ public class Arm {
     }
 
     public void update() {
-        // updateSensor();
-
         profileExecutor.updateNoEnd();
     }
 
@@ -123,9 +117,7 @@ public class Arm {
     private void output(Setpoint sp) {
         double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
         double gravityCompensation = 0.15 * Math.cos(getRealAngle(currentPosition));
-        // setpointStreamer.send(sp.getPosition());
         pivot.set(ControlMode.Position, lerp, DemandType.ArbitraryFeedForward,
                 gravityCompensation + (kF * sp.getVelocity()));
-        // outputStreamer.send(pivot.getMotorOutputPercent());
     }
 }

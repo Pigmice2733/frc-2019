@@ -77,8 +77,10 @@ public class Robot extends TimedRobot {
         // Gyro
         navx = new AHRS(SPI.Port.kMXP);
 
+        TalonSRX leftDrive = new TalonSRX(3);
+
         // Drivetrain
-        configureDrivetrain(3, 1, 4, 2);
+        configureDrivetrain(leftDrive, new TalonSRX(1), new VictorSPX(4), new VictorSPX(2));
 
         // Elevator
         TalonSRX elevatorWinch = new TalonSRX(5);
@@ -112,7 +114,7 @@ public class Robot extends TimedRobot {
         configureNeo(intakeFollower);
 
         TalonSRX intakeRoller = new TalonSRX(11);
-        intake = new Intake(intakePivot, intakeRoller, intakeRoller, navx);
+        intake = new Intake(intakePivot, leftDrive, intakeRoller, navx);
 
         // Stinger pistons
         stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
@@ -182,11 +184,12 @@ public class Robot extends TimedRobot {
         elevator.drive(-operatorJoystick.getY() * 0.4);
 
         arm.updateSensor();
-        arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
+        // arm.drive(-operatorJoystick.getRawAxis(5) * 0.5);
+        arm.drive(0.0);
 
         intake.updateSensor();
-        intake.drive(0.0);
-        // intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
+        // intake.drive(0.0);
+        intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
 
         // if (operatorJoystick.getRawButton(1)) {
         // outtake.drive(-0.15);
@@ -217,6 +220,10 @@ public class Robot extends TimedRobot {
     }
 
     private void gamePeriodic() {
+        elevator.updateSensor();
+        arm.updateSensor();
+        intake.updateSensor();
+
         if (driverJoystick.getRawButton(1) && driverJoystick.getY() < 0.2) {
             double visionOffset = Vision.getOffset();
 
@@ -376,17 +383,12 @@ public class Robot extends TimedRobot {
 
     }
 
-    private void configureDrivetrain(int frontLeft, int frontRight, int backLeft, int backRight) {
-        TalonSRX leftDrive = new TalonSRX(frontLeft);
-        TalonSRX rightDrive = new TalonSRX(frontRight);
-
+    private void configureDrivetrain(TalonSRX leftDrive, TalonSRX rightDrive, VictorSPX leftFollower,
+            VictorSPX rightFollower) {
         configureDriveMotor(leftDrive);
         configureDriveMotor(rightDrive);
 
         rightDrive.setInverted(true);
-
-        VictorSPX leftFollower = new VictorSPX(backLeft);
-        VictorSPX rightFollower = new VictorSPX(backRight);
 
         configureFollowerMotor(leftFollower, leftDrive);
         configureFollowerMotor(rightFollower, rightDrive);

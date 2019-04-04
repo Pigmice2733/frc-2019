@@ -22,13 +22,14 @@ public class Ring {
 
     public void put(double value) {
         total -= storage[writePos];
-
         storage[writePos] = value;
 
+        if (readPos == writePos) {
+            readPos = (readPos + 1) % size;
+        }
         writePos = (writePos + 1) % size;
 
         total += value;
-
         average = total / size;
     }
 
@@ -36,10 +37,11 @@ public class Ring {
         double value = storage[readPos];
         storage[readPos] = 0.0;
 
+        readPos = (readPos + 1) % size;
+
         total -= value;
         average = total / size;
 
-        readPos = (readPos + 1) % size;
         return value;
     }
 
