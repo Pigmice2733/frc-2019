@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.text.DecimalFormat;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -20,14 +22,14 @@ import frc.robot.utils.Utils;
 public class Intake {
     public class Target {
         public static final double START = 0.0;
-        public static final double INTAKE = 0.56;
-        public static final double STOWED_FRONT = 0.375;
+        public static final double INTAKE = 0.575;
+        public static final double STOWED_FRONT = 0.39;
         public static final double STOWED_UP = 0.245;
-        public static final double STOWED_BACK = 0.04;
+        public static final double STOWED_BACK = 0.05;
         public static final double CLIMB = 0.39;
     }
 
-    private CANSparkMax pivot;
+    private CANSparkMax pivot, follower;
     private TalonSRX sensor;
     private TalonSRX roller;
 
@@ -38,15 +40,15 @@ public class Intake {
     private Double currentPosition;
 
     private Bounds sensorBounds = new Bounds(0, 2640.0);
-    private Bounds climbRange = new Bounds(0.39, 2.0);
+    private Bounds climbRange = new Bounds(0.425, 1.4);
 
-    private double maximumRate = 0.001;
+    private double maximumRate = 0.5;
     private double positionDelta;
 
     private AHRS navx;
 
     private StaticProfileExecutor profileExecutor;
-    private double gravitykF = 0.075;
+    private double gravitykF = 0.02;
     private PIDF positionPID;
     // private NTStreamer<Double> positionStreamer;
     // private NTStreamer<Double> targetStreamer;
@@ -55,8 +57,11 @@ public class Intake {
 
     private PIDF balancePID;
 
-    public Intake(CANSparkMax pivot, TalonSRX positionSensor, TalonSRX roller, AHRS navx) {
+    DecimalFormat df = new DecimalFormat("#.##");
+
+    public Intake(CANSparkMax pivot, CANSparkMax follower, TalonSRX positionSensor, TalonSRX roller, AHRS navx) {
         this.pivot = pivot;
+        this.follower = follower;
         this.sensor = positionSensor;
         this.roller = roller;
         this.navx = navx;
@@ -66,22 +71,23 @@ public class Intake {
         // setpointStreamer = new NTStreamer<>("intake", "setpoint");
         // outputStreamer = new NTStreamer<>("intake", "output");
 
+        Gains gains = new Gains(0.2, 0.0, 0.0);
+        Bounds outputBounds = new Bounds(-0.8, 0.8);
+        balancePID = new PIDF(gains, outputBounds);
+
+        gains = new Gains(2.4, 0, 0.0, 0.0, 0.5, 0.0);
+        outputBounds = new Bounds(-0.5, 0.5);
+        positionPID = new PIDF(gains, outputBounds);
+
         zeroSensor();
         currentPosition = Target.STOWED_BACK;
         positionDelta = 0.0;
         setTargetPosition(Target.STOWED_BACK);
-
-        Gains gains = new Gains(0.15, 0.0, 0.0);
-        Bounds outputBounds = new Bounds(-0.8, 0.8);
-        balancePID = new PIDF(gains, outputBounds);
-
-        gains = new Gains(0.1, 1e-4, 1.0, 0.0, 0.75, 0.0);
-        outputBounds = new Bounds(-0.5, 0.5);
-        positionPID = new PIDF(gains, outputBounds);
     }
 
     public void drive(double percent) {
         pivot.set(percent);
+        follower.set(-percent);
         levelling = false;
         rateExceeded = false;
     }
@@ -100,18 +106,20 @@ public class Intake {
             levelling = true;
         }
 
-        double output = -balancePID.calculateOutput(navx.getRoll(), -14, Timer.getFPGATimestamp());
+        double output = -balancePID.calculateOutput(navx.getRoll(), -8, Timer.getFPGATimestamp());
 
         if (positionDelta > maximumRate || (currentPosition < climbRange.min() && output < 0.0)
                 || (currentPosition > climbRange.max() && output > 0.0)) {
             rateExceeded = true;
             pivot.set(0.0);
+            follower.set(0.0);
         } else {
             if (rateExceeded) {
                 rateExceeded = false;
                 startBalancing();
             }
             pivot.set(output);
+            follower.set(-output);
         }
     }
 
@@ -119,7 +127,7 @@ public class Intake {
         if (profileExecutor == null || Math.abs(this.targetPosition - targetPosition) > 1e-2 || levelling) {
             levelling = false;
             this.targetPosition = targetPosition;
-            StaticProfile profile = new StaticProfile(getVelocity(), currentPosition, targetPosition, 2.4, 2.4, 1.4);
+            StaticProfile profile = new StaticProfile(getVelocity(), currentPosition, targetPosition, 1.8, 1.8, 0.8);
             profileExecutor = new StaticProfileExecutor(profile, this::output, this::getPosition, 0.02);
             positionPID.initialize(currentPosition, Timer.getFPGATimestamp(), 0.0);
             profileExecutor.initialize();
@@ -151,7 +159,7 @@ public class Intake {
     public void update() {
         levelling = false;
 
-        if (positionDelta < maximumRate) {
+        if (positionDelta < maximumRate || currentPosition < 0.28) {
             if (rateExceeded) {
                 rateExceeded = false;
                 profileExecutor = null;
@@ -164,11 +172,14 @@ public class Intake {
     }
 
     private void output(Setpoint sp) {
-        double lerp = Utils.lerp(sp.getPosition(), 0.0, 1.0, sensorBounds.min(), sensorBounds.max());
-        double angle = Utils.lerp(currentPosition, 0.29, 0.62, 0.5 * Math.PI, Math.PI);
+        double angle = Utils.lerp(currentPosition, 0.265, 0.635, 0.5 * Math.PI, Math.PI);
         double gravityCompensation = gravitykF * Math.cos(angle);
-        double output = positionPID.calculateOutput(currentPosition, lerp, sp.getVelocity(), sp.getAcceleration(),
+        double output = positionPID.calculateOutput(currentPosition, sp.getPosition(), sp.getVelocity(), sp.getAcceleration(),
                 Timer.getFPGATimestamp()) + gravityCompensation;
-        pivot.set(output);
+
+        if(currentPosition > 0.025 || output > 0.0) {
+            pivot.set(output);
+            follower.set(-output);
+        }
     }
 }

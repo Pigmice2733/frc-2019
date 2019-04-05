@@ -13,6 +13,7 @@ import com.ctre.phoenix.motorcontrol.IMotorControllerEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANError;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -108,13 +109,12 @@ public class Robot extends TimedRobot {
         // Ball intake
         CANSparkMax intakePivot = new CANSparkMax(9, MotorType.kBrushless);
         CANSparkMax intakeFollower = new CANSparkMax(10, MotorType.kBrushless);
-        intakeFollower.follow(intakePivot, true);
 
         configureNeo(intakePivot);
         configureNeo(intakeFollower);
 
         TalonSRX intakeRoller = new TalonSRX(11);
-        intake = new Intake(intakePivot, leftDrive, intakeRoller, navx);
+        intake = new Intake(intakePivot, intakeFollower, intakeRoller, intakeRoller, navx);
 
         // Stinger pistons
         stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
@@ -188,20 +188,15 @@ public class Robot extends TimedRobot {
         arm.drive(0.0);
 
         intake.updateSensor();
+        intake.drive(0.0);
         // intake.drive(0.0);
-        intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
+        //intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
 
         // if (operatorJoystick.getRawButton(1)) {
         // outtake.drive(-0.15);
         // } else {
         // intake.setRoller(0.0);
         // }
-
-        if (operatorJoystick.getRawButton(6)) {
-            intake.setRoller(1.0);
-        } else {
-            intake.setRoller(0.0);
-        }
 
         if (operatorJoystick.getRawButton(2)) {
             stingers.extend();
@@ -271,7 +266,7 @@ public class Robot extends TimedRobot {
                 manipulator.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                manipulator.drive(-0.25);
+                manipulator.drive(-0.15);
                 intake.setRoller(0.0);
             }
         } else {
@@ -425,8 +420,8 @@ public class Robot extends TimedRobot {
 
         neo.setMotorType(MotorType.kBrushless);
         neo.setIdleMode(IdleMode.kBrake);
-        neo.setOpenLoopRampRate(1.0);
-        neo.setSmartCurrentLimit(25, 2, 25);
-        neo.setSecondaryCurrentLimit(30, 2);
+        neo.setOpenLoopRampRate(0.12);
+        neo.setSmartCurrentLimit(20, 2, 25);
+        neo.setSecondaryCurrentLimit(20, 2);
     }
 }

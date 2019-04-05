@@ -16,7 +16,7 @@ public class SuperStructure {
 
     private Pose finalTarget;
 
-    private static final boolean antiCollisionLogging = false;
+    private static boolean antiCollisionLogging = false;
 
     private static final Bounds intakeCollision = new Bounds(0.115, 0.47);
 
@@ -54,7 +54,6 @@ public class SuperStructure {
     public void initialize(Pose target) {
         elevator.resetPID();
         arm.resetPID();
-
         target(target);
     }
 
@@ -191,15 +190,19 @@ public class SuperStructure {
         if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.CARGO_OUTTAKE)) {
             if (current.arm < (target.arm - 0.035)) {
                 setState("L1");
-                return target.setIntakeMin(0.625).setElevatorMin(0.2);
+                return target.setIntakeMin(0.63).setElevatorMin(0.3);
             }
         }
 
         if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.DOWN_UP)) {
             if (current.arm < (target.arm - 0.025)) {
                 setState("L2");
-                return target.setElevatorMin(0.2);
+                return target.setElevatorMin(0.3);
             }
+        }
+
+        if(target.arm > 0.04 && target.intake > 0.2 && current.arm < 0.0425) {
+            return target.setElevatorMin(0.2);
         }
 
         // Enter starting config
