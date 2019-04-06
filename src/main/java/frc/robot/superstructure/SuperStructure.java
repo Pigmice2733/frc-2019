@@ -208,12 +208,12 @@ public class SuperStructure {
         // Enter starting config
         if (Utils.almostEquals(target.arm, Arm.Target.START)) {
             if (current.arm > 0.0) {
-                if (current.elevator < 0.15 && current.arm > 0.01) {
+                if (current.elevator < 0.15 && current.arm > 0.015) {
                     setState("M");
-                    return target.setElevatorMin(0.2).setArmMin(0.025);
+                    return target.setElevatorMin(0.165).setArmMin(0.02);
                 } else {
                     setState("N");
-                    return target.setElevatorMin(0.2);
+                    return target.setElevatorMin(0.16);
                 }
             } else {
                 if (current.elevator < 0.13) {
