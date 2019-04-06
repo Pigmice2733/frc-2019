@@ -19,10 +19,11 @@ public class Arm {
         public static final double DOWN_ANGLE = 0.02;
         public static final double UP_ANGLE = 0.955;
         public static final double UP_FLAT = 0.905;
-        public static final double DOWN_FLAT = 0.073;
+        public static final double DOWN_FLAT = 0.0775; // Pro
         public static final double DOWN_UP = 0.14;
         public static final double DOWN_SLIGHT = 0.048;
         public static final double CARGO_OUTTAKE = 0.24;
+        public static final double CARGO_SHIP = 0.15;
     }
 
     private TalonSRX pivot;
