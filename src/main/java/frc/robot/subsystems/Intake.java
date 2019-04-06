@@ -7,6 +7,7 @@ import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj.Timer;
@@ -30,7 +31,7 @@ public class Intake {
     }
 
     private CANSparkMax pivot, follower;
-    private TalonSRX sensor;
+    private CANEncoder sensor;
     private TalonSRX roller;
 
     private boolean levelling = false;
@@ -39,7 +40,7 @@ public class Intake {
     private Double targetPosition;
     private Double currentPosition;
 
-    private Bounds sensorBounds = new Bounds(0, 2640.0);
+    private Bounds sensorBounds = new Bounds(0, 53.0);
     private Bounds climbRange = new Bounds(0.425, 1.4);
 
     private double maximumRate = 0.5;
@@ -59,7 +60,7 @@ public class Intake {
 
     DecimalFormat df = new DecimalFormat("#.##");
 
-    public Intake(CANSparkMax pivot, CANSparkMax follower, TalonSRX positionSensor, TalonSRX roller, AHRS navx) {
+    public Intake(CANSparkMax pivot, CANSparkMax follower, CANEncoder positionSensor, TalonSRX roller, AHRS navx) {
         this.pivot = pivot;
         this.follower = follower;
         this.sensor = positionSensor;
@@ -135,18 +136,18 @@ public class Intake {
     }
 
     public double getPosition() {
-        double raw = (double) sensor.getSelectedSensorPosition();
+        double raw = (double) sensor.getPosition();
         currentPosition = Utils.lerp(raw, sensorBounds.min(), sensorBounds.max(), 0.0, 1.0);
         return currentPosition;
     }
 
     public double getVelocity() {
-        double raw = (double) sensor.getSelectedSensorVelocity();
-        return Utils.lerp(raw, -sensorBounds.size(), sensorBounds.size(), -1.0, 1.0);
+        double raw = (double) sensor.getVelocity();
+        return Utils.lerp(raw, -sensorBounds.size(), sensorBounds.size(), -1.0, 1.0) / 60.0;
     }
 
     public void zeroSensor() {
-        sensor.setSelectedSensorPosition((int) sensorBounds.min());
+        sensor.setPosition((int) sensorBounds.min());
         currentPosition = 0.0;
     }
 

@@ -59,6 +59,8 @@ public class Robot extends TimedRobot {
     PIDF visionAlignment;
     boolean visionEnabled = false;
 
+    boolean panicMode = false;
+
     Drivetrain drivetrain;
     Stingers stingers;
     AHRS navx;
@@ -114,7 +116,7 @@ public class Robot extends TimedRobot {
         configureNeo(intakeFollower);
 
         TalonSRX intakeRoller = new TalonSRX(11);
-        intake = new Intake(intakePivot, intakeFollower, intakeRoller, intakeRoller, navx);
+        intake = new Intake(intakePivot, intakeFollower, intakePivot.getEncoder(), intakeRoller, navx);
 
         // Stinger pistons
         stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
@@ -188,9 +190,13 @@ public class Robot extends TimedRobot {
         arm.drive(0.0);
 
         intake.updateSensor();
-        intake.drive(0.0);
-        // intake.drive(0.0);
-        //intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
+        // if(operatorJoystick.getRawButton(6)) {
+        //     intake.setTargetPosition(0.5);
+        // } else {
+        //     intake.setTargetPosition(0.245);
+        // }
+        // intake.update();
+        intake.drive(-operatorJoystick.getRawAxis(5) * 0.35);
 
         // if (operatorJoystick.getRawButton(1)) {
         // outtake.drive(-0.15);
@@ -280,6 +286,19 @@ public class Robot extends TimedRobot {
         if (climbMode) {
             if (operatorJoystick.getRawButton(6)) {
                 intake.levelRobot();
+            } else if(panicMode || driverJoystick.getRawButton(8) || driverJoystick.getRawButton(7)) {
+                panicMode = true;
+                double speed = 0.0;
+                if(driverJoystick.getRawButton(7)) {
+                    speed = -0.15;
+                } else if(driverJoystick.getRawButton(8)) {
+                    speed = 0.1;
+                }
+                intake.drive(speed);
+                arm.setTargetPosition(0.0);
+                arm.update();
+                elevator.setTargetPosition(0.1);
+                elevator.update();
             } else {
                 superStructure.initialize(SuperStructure.Target.PRE_CLIMB);
             }
