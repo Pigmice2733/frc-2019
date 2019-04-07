@@ -232,9 +232,9 @@ public class Robot extends TimedRobot {
         intake.updateSensor();
 
         if (driverJoystick.getRawButton(1) && driverJoystick.getY() < 0.2) {
-            double visionOffset = Vision.getOffset();
+            if (Vision.targetVisible()) {
+                double visionOffset = Vision.getOffset();
 
-            if (visionOffset != -5.0 && visionOffset != 0.0) {
                 if (!visionEnabled) {
                     visionEnabled = true;
                     visionAlignment.initialize(visionOffset, Timer.getFPGATimestamp(), 0.0);
