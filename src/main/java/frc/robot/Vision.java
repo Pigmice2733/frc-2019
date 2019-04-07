@@ -42,16 +42,6 @@ public class Vision {
         return targetOffset;
     }
 
-    public static void clearUsbBuffer() {
-        if (port == null) {
-            initPort();
-        }
-
-        if (port != null) {
-            port.readString();
-        }
-    }
-
     private synchronized static void setTarget(double targetOffset) {
         Vision.targetOffset = targetOffset;
     }
@@ -72,10 +62,7 @@ public class Vision {
             } catch (Exception e) {
                 System.out.println(e.toString());
                 initPort();
-                initialized = true;
             }
-
-            port.writeString("set-mask on\n");
         }
     }
 
@@ -92,14 +79,16 @@ public class Vision {
     }
 
     private static void initPort() {
-        if (port != null) {
-            try {
-                port.reset();
-            } catch (Exception e) {
-            }
-        } else {
+        if(port == null) {
             try {
                 port = new SerialPort(115200, SerialPort.Port.kUSB1);
+                initialized = true;
+            } catch (Exception e) {
+                initialized = false;
+            }
+        } else if (!initialized) {
+            try {
+                port.reset();
                 initialized = true;
             } catch (Exception e) {
                 initialized = false;

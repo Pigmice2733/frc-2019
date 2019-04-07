@@ -13,6 +13,7 @@ import com.ctre.phoenix.motorcontrol.IMotorControllerEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANError;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -49,6 +50,10 @@ public class Robot extends TimedRobot {
     ButtonDebouncer climbToggle;
     boolean climbMode = false;
 
+    ButtonDebouncer shipToggle;
+    boolean cargoShip = false;
+    boolean cargoMiddle = false;
+
     boolean trimMode = false;
     double trimArmPose = 0.0;
 
@@ -57,6 +62,8 @@ public class Robot extends TimedRobot {
 
     PIDF visionAlignment;
     boolean visionEnabled = false;
+
+    boolean panicMode = false;
 
     Drivetrain drivetrain;
     Stingers stingers;
@@ -108,13 +115,12 @@ public class Robot extends TimedRobot {
         // Ball intake
         CANSparkMax intakePivot = new CANSparkMax(9, MotorType.kBrushless);
         CANSparkMax intakeFollower = new CANSparkMax(10, MotorType.kBrushless);
-        intakeFollower.follow(intakePivot, true);
 
         configureNeo(intakePivot);
         configureNeo(intakeFollower);
 
         TalonSRX intakeRoller = new TalonSRX(11);
-        intake = new Intake(intakePivot, leftDrive, intakeRoller, navx);
+        intake = new Intake(intakePivot, intakeFollower, intakePivot.getEncoder(), intakeRoller, navx);
 
         // Stinger pistons
         stingers = new Stingers(new DoubleSolenoid(2, 0), new DoubleSolenoid(3, 1));
@@ -126,6 +132,7 @@ public class Robot extends TimedRobot {
 
         modeToggle = new ButtonDebouncer(operatorJoystick, 9);
         climbToggle = new ButtonDebouncer(operatorJoystick, 10);
+        shipToggle = new ButtonDebouncer(operatorJoystick, 3);
 
         Bounds visionOutputBounds = new Bounds(-0.6, 0.6);
         Gains alignmentGains = new Gains(-0.35, 0.0, 0.0);
@@ -145,6 +152,8 @@ public class Robot extends TimedRobot {
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
         climbMode = false;
         hatchMode = true;
+        cargoMiddle = false;
+        cargoShip = false;
     }
 
     @Override
@@ -188,20 +197,19 @@ public class Robot extends TimedRobot {
         arm.drive(0.0);
 
         intake.updateSensor();
-        // intake.drive(0.0);
-        intake.drive(-operatorJoystick.getRawAxis(5) * 0.6);
+        // if(operatorJoystick.getRawButton(6)) {
+        //     intake.setTargetPosition(0.5);
+        // } else {
+        //     intake.setTargetPosition(0.245);
+        // }
+        // intake.update();
+        intake.drive(-operatorJoystick.getRawAxis(5) * 0.35);
 
         // if (operatorJoystick.getRawButton(1)) {
         // outtake.drive(-0.15);
         // } else {
         // intake.setRoller(0.0);
         // }
-
-        if (operatorJoystick.getRawButton(6)) {
-            intake.setRoller(1.0);
-        } else {
-            intake.setRoller(0.0);
-        }
 
         if (operatorJoystick.getRawButton(2)) {
             stingers.extend();
@@ -271,7 +279,7 @@ public class Robot extends TimedRobot {
                 manipulator.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                manipulator.drive(-0.25);
+                manipulator.drive(-0.15);
                 intake.setRoller(0.0);
             }
         } else {
@@ -282,9 +290,36 @@ public class Robot extends TimedRobot {
             climbMode = !climbMode;
         }
 
+        if(hatchMode || climbMode) {
+            cargoShip = false;
+            cargoMiddle = false;
+        } else {
+            if(shipToggle.get()) {
+                if(!cargoMiddle) {
+                    cargoMiddle = true;
+                    cargoShip = false;
+                } else {
+                    cargoShip = !cargoShip;
+                }
+            }
+        }
+
         if (climbMode) {
             if (operatorJoystick.getRawButton(6)) {
                 intake.levelRobot();
+            } else if(panicMode || driverJoystick.getRawButton(8) || driverJoystick.getRawButton(7)) {
+                panicMode = true;
+                double speed = 0.0;
+                if(driverJoystick.getRawButton(7)) {
+                    speed = -0.15;
+                } else if(driverJoystick.getRawButton(8)) {
+                    speed = 0.1;
+                }
+                intake.drive(speed);
+                arm.setTargetPosition(0.0);
+                arm.update();
+                elevator.setTargetPosition(0.1);
+                elevator.update();
             } else {
                 superStructure.initialize(SuperStructure.Target.PRE_CLIMB);
             }
@@ -300,6 +335,7 @@ public class Robot extends TimedRobot {
             intake.setRoller(-2.0 * driverJoystick.getY());
         } else {
             Pose target = findSetpoint();
+
             if (target != null) {
                 superStructure.target(target);
             } else {
@@ -326,6 +362,12 @@ public class Robot extends TimedRobot {
     }
 
     private Pose findSetpoint() {
+        if (operatorJoystick.getRawButton(7)) {
+            cargoMiddle = false;
+            cargoShip = false;
+            return SuperStructure.Target.STARTING_CONFIG;
+        }
+
         if (hatchMode) {
             if (operatorJoystick.getRawButton(1)) {
                 // A
@@ -343,22 +385,26 @@ public class Robot extends TimedRobot {
         } else {
             if (operatorJoystick.getRawButton(1)) {
                 // A
+                cargoMiddle = false;
                 return SuperStructure.Target.CARGO_BOTTOM;
             } else if (operatorJoystick.getRawButton(2)) {
                 // B
                 // return SuperStructure.Target.CARGO_M_BACK;
+                cargoMiddle = false;
                 return SuperStructure.Target.CARGO_OUTTAKE_BOTTOM;
-            } else if (operatorJoystick.getRawButton(3)) {
-                // X
-                return SuperStructure.Target.CARGO_M_FRONT;
             } else if (operatorJoystick.getRawButton(4)) {
                 // Y
+                cargoMiddle = false;
                 return SuperStructure.Target.CARGO_TOP;
             }
-        }
 
-        if (operatorJoystick.getRawButton(7)) {
-            return SuperStructure.Target.STARTING_CONFIG;
+            if(cargoMiddle) {
+                if(cargoShip) {
+                    return SuperStructure.Target.CARGO_SHIP;
+                } else {
+                    return SuperStructure.Target.CARGO_M_FRONT;
+                }
+            }
         }
 
         if (superStructure.getTarget().equals(SuperStructure.Target.CARGO_BOTTOM)
@@ -380,7 +426,6 @@ public class Robot extends TimedRobot {
         }
 
         return null;
-
     }
 
     private void configureDrivetrain(TalonSRX leftDrive, TalonSRX rightDrive, VictorSPX leftFollower,
@@ -425,8 +470,8 @@ public class Robot extends TimedRobot {
 
         neo.setMotorType(MotorType.kBrushless);
         neo.setIdleMode(IdleMode.kBrake);
-        neo.setOpenLoopRampRate(1.0);
-        neo.setSmartCurrentLimit(25, 2, 25);
-        neo.setSecondaryCurrentLimit(30, 2);
+        neo.setOpenLoopRampRate(0.12);
+        neo.setSmartCurrentLimit(20, 2, 25);
+        neo.setSecondaryCurrentLimit(20, 2);
     }
 }
