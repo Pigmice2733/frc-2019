@@ -1,6 +1,5 @@
 package frc.robot;
 
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -21,11 +20,11 @@ public class Vision {
         }
     });
 
-    private static volatile ScheduledFuture<?> self;
-    private static boolean initialized = false;
+    private static ScheduledFuture<?> self;
     private static boolean enabled;
 
-    private static boolean connected = false;
+    private static volatile boolean initialized = false;
+    private static volatile boolean connected = false;
     // Time of last message (seconds)
     private static double lastMessage = 0.0;
 
@@ -41,38 +40,30 @@ public class Vision {
     private static volatile double targetOffset = 0.0;
     private static volatile boolean targetVisible = false;
 
-    public synchronized static void start() {
+    public static void start() {
         if (!enabled) {
             enabled = true;
             self = scheduler.scheduleAtFixedRate(Vision::update, 1000, 60, TimeUnit.MILLISECONDS);
         }
     }
 
-    public synchronized static void stop() {
+    public static void stop() {
         enabled = false;
         self.cancel(true);
         self = null;
         port = null;
+        initialized = false;
         connected = false;
-        targetOffset = 0.0;
         targetVisible = false;
+        targetOffset = 0.0;
     }
 
-    public synchronized static double getOffset() {
+    public static double getOffset() {
         return targetOffset;
     }
 
-    public synchronized static boolean targetVisible() {
+    public static boolean targetVisible() {
         return connected && targetVisible;
-    }
-
-    private synchronized static void setTarget(double targetOffset, boolean targetVisible) {
-        Vision.targetOffset = targetOffset;
-        Vision.targetVisible = targetVisible;
-    }
-
-    private synchronized static void setConnected(boolean connected) {
-        Vision.connected = connected;
     }
 
     private static void update() {
@@ -91,9 +82,7 @@ public class Vision {
             }
         }
 
-        if (currentTime - lastMessage > disconnectTime) {
-            setConnected(false);
-        }
+        connected = (currentTime - lastMessage) < disconnectTime;
     }
 
     private static void parseInput(String input) {
@@ -104,12 +93,16 @@ public class Vision {
         if (endIndex > startIndex && startIndex > -1) {
             String centerString = input.substring(startIndex + 6, separatorIndex);
             if (centerString.length() == 4 && centerString.toLowerCase().equals("None")) {
-                setTarget(0.0, false);
+                Vision.targetVisible = false;
+                Vision.targetOffset = 0.0;
             } else {
                 double center = Double.valueOf(centerString);
                 double width = Double.valueOf(input.substring(separatorIndex + 2, endIndex));
-                setTarget(center + width * cameraOffsetCompensation, true);
+
+                targetOffset = center + width * cameraOffsetCompensation;
+                targetVisible = true;
             }
+
             remainingInput = input.substring(endIndex + 3);
         } else {
             remainingInput = input;
