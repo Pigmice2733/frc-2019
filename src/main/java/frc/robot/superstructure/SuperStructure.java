@@ -202,7 +202,7 @@ public class SuperStructure {
             }
         }
 
-        if(target.arm > 0.04 && target.intake > 0.2 && current.arm < 0.0425) {
+        if (target.arm > 0.04 && target.intake > 0.2 && current.arm < 0.0425) {
             return target.setElevatorMin(0.2);
         }
 
@@ -214,7 +214,7 @@ public class SuperStructure {
                     return target.setElevatorMin(0.165).setArmMin(0.02);
                 } else {
                     setState("N");
-                    return target.setElevatorMin(0.16);
+                    return target.setElevatorMin(0.165);
                 }
             } else {
                 if (current.elevator < 0.13) {

@@ -34,10 +34,12 @@ public class Vision {
     // Compensation factor for camera being off center, in fraction of distance
     // between vision targets
     private static final double cameraOffsetCompensation = 0.32;
+    // Horizontal field of view in degrees;
+    private static final double FOV = 60.0;
 
     // Roll-over input from camera since messages don't always line up with
     private static String remainingInput = "";
-    private static volatile double targetOffset = 0.0;
+    private static volatile double targetAngle = 0.0;
     private static volatile boolean targetVisible = false;
 
     public static void start() {
@@ -55,15 +57,19 @@ public class Vision {
         initialized = false;
         connected = false;
         targetVisible = false;
-        targetOffset = 0.0;
+        targetAngle = 0.0;
     }
 
     public static double getOffset() {
-        return targetOffset;
+        return targetAngle;
     }
 
     public static boolean targetVisible() {
         return connected && targetVisible;
+    }
+
+    public static boolean isConnected() {
+        return connected;
     }
 
     private static void update() {
@@ -94,12 +100,13 @@ public class Vision {
             String centerString = input.substring(startIndex + 6, separatorIndex);
             if (centerString.length() == 4 && centerString.toLowerCase().equals("None")) {
                 Vision.targetVisible = false;
-                Vision.targetOffset = 0.0;
+                Vision.targetAngle = 0.0;
             } else {
                 double center = Double.valueOf(centerString);
                 double width = Double.valueOf(input.substring(separatorIndex + 2, endIndex));
 
-                targetOffset = center + width * cameraOffsetCompensation;
+                // Compensate for camera offset and convert to angle
+                targetAngle = 0.5 * FOV * (center + width * cameraOffsetCompensation);
                 targetVisible = true;
             }
 

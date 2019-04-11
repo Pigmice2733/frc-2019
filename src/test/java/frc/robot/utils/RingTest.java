@@ -16,11 +16,11 @@ public class RingTest {
         ring.put(3.0);
         ring.put(4.0);
 
+        Assert.assertEquals(0.0, ring.get(), epsilon);
         Assert.assertEquals(1.0, ring.get(), epsilon);
         Assert.assertEquals(2.0, ring.get(), epsilon);
         Assert.assertEquals(3.0, ring.get(), epsilon);
         Assert.assertEquals(4.0, ring.get(), epsilon);
-        Assert.assertEquals(0.0, ring.get(), epsilon);
     }
 
     @Test
@@ -33,16 +33,17 @@ public class RingTest {
         ring.put(3.0);
         ring.put(4.0);
 
+        Assert.assertEquals(4.0, ring.get(), epsilon);
         Assert.assertEquals(1.0, ring.get(), epsilon);
         Assert.assertEquals(2.0, ring.get(), epsilon);
         Assert.assertEquals(3.0, ring.get(), epsilon);
-        Assert.assertEquals(4.0, ring.get(), epsilon);
         Assert.assertEquals(0.0, ring.get(), epsilon);
         Assert.assertEquals(0.0, ring.get(), epsilon);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void invalidSize() {
+        @SuppressWarnings("unused")
         Ring ring = new Ring(0);
     }
 
