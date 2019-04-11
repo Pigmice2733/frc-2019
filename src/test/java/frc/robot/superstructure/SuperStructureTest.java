@@ -154,7 +154,7 @@ public class SuperStructureTest {
     @Test
     public void ballBottomToTop() {
         Pose current = SuperStructure.Target.CARGO_BOTTOM;
-        Pose target = SuperStructure.Target.CARGO_TOP;
+        Pose target = SuperStructure.Target.CARGO_B_TOP;
 
         Pose intermediate = SuperStructure.getIntermediatePose(current, target);
 
@@ -179,7 +179,7 @@ public class SuperStructureTest {
 
     @Test
     public void ballTopToBottom() {
-        Pose current = SuperStructure.Target.CARGO_TOP;
+        Pose current = SuperStructure.Target.CARGO_F_TOP;
         Pose target = SuperStructure.Target.CARGO_BOTTOM;
 
         Pose intermediate = SuperStructure.getIntermediatePose(current, target);
@@ -205,7 +205,7 @@ public class SuperStructureTest {
 
     @Test
     public void ballTopToHatchBottom() {
-        Pose current = SuperStructure.Target.CARGO_TOP;
+        Pose current = SuperStructure.Target.CARGO_F_TOP;
         Pose target = SuperStructure.Target.HATCH_BOTTOM;
 
         Pose intermediate = SuperStructure.getIntermediatePose(current, target);
@@ -224,7 +224,7 @@ public class SuperStructureTest {
 
     @Test
     public void ballTopToStart() {
-        Pose current = SuperStructure.Target.CARGO_TOP;
+        Pose current = SuperStructure.Target.CARGO_B_TOP;
         Pose target = SuperStructure.Target.STARTING_CONFIG;
 
         Pose intermediate = SuperStructure.getIntermediatePose(current, target);

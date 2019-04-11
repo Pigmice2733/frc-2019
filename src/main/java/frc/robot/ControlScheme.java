@@ -15,6 +15,7 @@ public class ControlScheme {
     private Toggle climbMode = new Toggle(operator, 10);
 
     private SubstateToggle shipToggle = new SubstateToggle(new ButtonDebouncer(operator, 3));
+    private SubstateToggle cargoTopToggle = new SubstateToggle(new ButtonDebouncer(operator, 4));
 
     private boolean panicMode = false;
     private boolean cargoBottom = false;
@@ -22,6 +23,7 @@ public class ControlScheme {
 
     public void initialize() {
         shipToggle.exit();
+        cargoTopToggle.exit();
 
         hatchMode.set(true);
         climbMode.set(false);
@@ -35,9 +37,11 @@ public class ControlScheme {
         climbMode.update();
 
         shipToggle.update();
+        cargoTopToggle.update();
 
         if (hatchMode.get() || climbMode.get()) {
             shipToggle.exit();
+            cargoTopToggle.exit();
             cargoBottom = false;
         }
 
@@ -103,6 +107,7 @@ public class ControlScheme {
     public Pose findSetpoint() {
         if (operator.getRawButton(7)) {
             shipToggle.exit();
+            cargoTopToggle.exit();
             cargoBottom = false;
             return SuperStructure.Target.STARTING_CONFIG;
         }
@@ -120,20 +125,29 @@ public class ControlScheme {
         } else if (!climbMode()) {
             if (A()) {
                 shipToggle.exit();
+                cargoTopToggle.exit();
                 cargoBottom = true;
                 return SuperStructure.Target.CARGO_BOTTOM;
             } else if (B()) {
                 shipToggle.exit();
+                cargoTopToggle.exit();
                 cargoBottom = false;
                 return SuperStructure.Target.CARGO_OUTTAKE_BOTTOM;
-            } else if (Y()) {
-                shipToggle.exit();
+            }
+
+            if (cargoTopToggle.isEnabled()) {
                 cargoBottom = false;
-                return SuperStructure.Target.CARGO_TOP;
+                shipToggle.exit();
+                if (cargoTopToggle.isToggled()) {
+                    return SuperStructure.Target.CARGO_B_TOP;
+                } else {
+                    return SuperStructure.Target.CARGO_F_TOP;
+                }
             }
 
             if (shipToggle.isEnabled()) {
                 cargoBottom = false;
+                cargoTopToggle.exit();
                 if (shipToggle.isToggled()) {
                     return SuperStructure.Target.CARGO_SHIP;
                 } else {
