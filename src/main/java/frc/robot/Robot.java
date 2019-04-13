@@ -73,10 +73,7 @@ public class Robot extends TimedRobot {
         CameraServer server = CameraServer.getInstance();
         server.startAutomaticCapture("Driver Cam", 0);
 
-        new Thread(() -> {
-            Timer.delay(5.0);
-            Vision.start();
-        }).start();
+        // Vision.start();
     }
 
     @Override
@@ -139,12 +136,14 @@ public class Robot extends TimedRobot {
         arm.updateSensor();
         intake.updateSensor();
 
-        if (!controls.visionEngaged() || !Vision.isConnected()) {
+        controls.update();
+
+        if (!controls.visionEngaged()) {
+            drivetrain.arcadeDrive(controls.drive(), controls.steer());
+        } else {
             if (!Vision.isConnected()) {
                 System.out.println("Vision camera not connected");
             }
-            drivetrain.arcadeDrive(controls.drive(), controls.steer());
-        } else {
             drivetrain.visionDrive(controls.drive(), controls.steer(), Vision.targetVisible(), Vision.getOffset());
         }
 
@@ -167,7 +166,7 @@ public class Robot extends TimedRobot {
                 manipulator.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                manipulator.drive(-0.15);
+                manipulator.drive(-0.20);
                 intake.setRoller(0.0);
             }
         }

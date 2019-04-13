@@ -135,6 +135,14 @@ public class ControlScheme {
                 return SuperStructure.Target.CARGO_OUTTAKE_BOTTOM;
             }
 
+            if (X()) {
+                cargoTopToggle.exit();
+            }
+
+            if (Y()) {
+                shipToggle.exit();
+            }
+
             if (cargoTopToggle.isEnabled()) {
                 cargoBottom = false;
                 shipToggle.exit();

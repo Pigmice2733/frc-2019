@@ -74,14 +74,12 @@ public class Vision {
 
     private static void update() {
         double currentTime = Timer.getFPGATimestamp();
-        if (!initialized) {
+        if (!initialized || port == null) {
             initPort();
         } else {
             try {
-                if (port.getBytesReceived() > 0) {
-                    lastMessage = currentTime;
-                    parseInput(remainingInput + port.readString());
-                }
+                lastMessage = currentTime;
+                parseInput(remainingInput + port.readString());
             } catch (Exception e) {
                 System.out.println(e.toString());
                 initPort();
@@ -119,18 +117,16 @@ public class Vision {
     private static void initPort() {
         if (port == null) {
             try {
-                port = new SerialPort(115200, SerialPort.Port.kUSB1);
                 initialized = true;
+                port = new SerialPort(115200, SerialPort.Port.kUSB1);
             } catch (Exception e) {
-                port = null;
                 initialized = false;
             }
         } else if (!initialized) {
             try {
-                port.reset();
                 initialized = true;
+                port.reset();
             } catch (Exception e) {
-                initialized = false;
             }
         }
     }
