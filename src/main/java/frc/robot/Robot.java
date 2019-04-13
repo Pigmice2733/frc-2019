@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
 import frc.robot.motorconfig.CTRE;
 import frc.robot.motorconfig.REV;
 import frc.robot.subsystems.Arm;

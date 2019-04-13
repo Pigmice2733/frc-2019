@@ -40,7 +40,7 @@ public class SuperStructure {
         public static final Pose CARGO_SHIP = new Pose(0.9, Arm.Target.CARGO_SHIP, Intake.Target.STOWED_UP);
         public static final Pose CARGO_M_BACK = new Pose(0.0, 0.97, Intake.Target.STOWED_UP);
         public static final Pose CARGO_F_TOP = new Pose(0.98, 0.50, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_B_TOP = new Pose(0.98, 0.90, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_B_TOP = new Pose(0.825, 0.90, Intake.Target.STOWED_UP);
         public static final Pose CARGO_INTAKE = new Pose(0.02, Arm.Target.DOWN_UP, Intake.Target.INTAKE);
         public static final Pose CARGO_INTAKE_HIGH = new Pose(0.02, Arm.Target.DOWN_UP, Intake.Target.INTAKE - 0.075);
         public static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.0, Arm.Target.CARGO_OUTTAKE, 0.5);

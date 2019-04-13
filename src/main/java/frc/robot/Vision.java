@@ -74,7 +74,7 @@ public class Vision {
 
     private static void update() {
         double currentTime = Timer.getFPGATimestamp();
-        if (!initialized || port == null) {
+        if (!initialized) {
             initPort();
         } else {
             try {
@@ -117,16 +117,17 @@ public class Vision {
     private static void initPort() {
         if (port == null) {
             try {
-                initialized = true;
                 port = new SerialPort(115200, SerialPort.Port.kUSB1);
+                initialized = true;
             } catch (Exception e) {
                 initialized = false;
             }
         } else if (!initialized) {
             try {
-                initialized = true;
                 port.reset();
+                initialized = true;
             } catch (Exception e) {
+                initialized = false;
             }
         }
     }
