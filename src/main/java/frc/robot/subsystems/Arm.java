@@ -14,7 +14,7 @@ import frc.robot.utils.Utils;
 
 public class Arm {
     public class Target {
-        public static final double START = -0.016;
+        public static final double START = -0.0175;
         public static final double CLIMB = 0.0;
         public static final double DOWN_ANGLE = 0.02;
         public static final double UP_ANGLE = 0.955;

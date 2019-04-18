@@ -5,7 +5,11 @@ import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.motion.Setpoint;
+import frc.robot.pidf.Gains;
+import frc.robot.pidf.PIDF;
+import frc.robot.utils.Bounds;
 import frc.robot.utils.Odometry;
 
 public class Drivetrain {
@@ -13,7 +17,11 @@ public class Drivetrain {
     private AHRS navx;
     private double trackwidth;
 
+    PIDF visionAlignment;
+
     private Odometry nonLinearStateEstimator;
+
+    private boolean visionEngaged = false;
 
     // Convert between feet and encoder ticks
     private static final double ticksPerFoot = 4096 / (Math.PI * 0.5);
@@ -23,6 +31,10 @@ public class Drivetrain {
         this.rightDrive = rightDrive;
         this.navx = navx;
         this.trackwidth = trackwidth;
+
+        Bounds visionOutputBounds = new Bounds(-0.6, 0.6);
+        Gains alignmentGains = new Gains(-0.012, 0.0, 0.0);
+        visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
 
         // this.nonLinearStateEstimator = new Odometry(0.0, 0.0, navx.getAngle());
     }
@@ -34,6 +46,10 @@ public class Drivetrain {
     public void initializePID() {
         leftDrive.setSelectedSensorPosition(0, 0, 100);
         rightDrive.setSelectedSensorPosition(0, 0, 100);
+    }
+
+    public void stop() {
+        tankDrive(0.0, 0.0);
     }
 
     public void tankDrive(double leftSpeed, double rightSpeed) {
@@ -48,8 +64,20 @@ public class Drivetrain {
         tankDrive(forwardSpeed + turnSpeed, forwardSpeed - turnSpeed);
     }
 
-    public void stop() {
-        tankDrive(0.0, 0.0);
+    public void visionDrive(double forwardSpeed, double driverSteer, boolean targetVisible, double targetAngle) {
+        if (targetVisible) {
+            if (!visionEngaged) {
+                visionEngaged = true;
+                visionAlignment.initialize(targetAngle, Timer.getFPGATimestamp(), 0.0);
+            }
+
+            double output = visionAlignment.calculateOutput(targetAngle, 0.0, Timer.getFPGATimestamp());
+            arcadeDrive(forwardSpeed, output);
+        } else {
+            System.out.println("Target not visible");
+            visionEngaged = false;
+            arcadeDrive(forwardSpeed, driverSteer);
+        }
     }
 
     public void PIDDrive(Setpoint leftSetpoint, Setpoint rightSetpoint) {

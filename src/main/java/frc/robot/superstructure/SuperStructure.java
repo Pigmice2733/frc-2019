@@ -16,7 +16,7 @@ public class SuperStructure {
 
     private Pose finalTarget;
 
-    private static boolean antiCollisionLogging = false;
+    private static boolean antiCollisionLogging = true;
 
     private static final Bounds intakeCollision = new Bounds(0.115, 0.47);
 
@@ -39,7 +39,8 @@ public class SuperStructure {
         public static final Pose CARGO_M_FRONT = new Pose(0.992, 0.27, Intake.Target.STOWED_UP);
         public static final Pose CARGO_SHIP = new Pose(0.9, Arm.Target.CARGO_SHIP, Intake.Target.STOWED_UP);
         public static final Pose CARGO_M_BACK = new Pose(0.0, 0.97, Intake.Target.STOWED_UP);
-        public static final Pose CARGO_TOP = new Pose(0.98, 0.50, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_F_TOP = new Pose(0.98, 0.50, Intake.Target.STOWED_UP);
+        public static final Pose CARGO_B_TOP = new Pose(0.825, 0.90, Intake.Target.STOWED_UP);
         public static final Pose CARGO_INTAKE = new Pose(0.02, Arm.Target.DOWN_UP, Intake.Target.INTAKE);
         public static final Pose CARGO_INTAKE_HIGH = new Pose(0.02, Arm.Target.DOWN_UP, Intake.Target.INTAKE - 0.075);
         public static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.0, Arm.Target.CARGO_OUTTAKE, 0.5);
@@ -101,7 +102,7 @@ public class SuperStructure {
             // Intake could currently be above manipulators
             if (intakeCollision.contains(current.intake)) {
                 // Arm starts down
-                if (current.arm < 0.3 && current.elevator < 0.9 && (target.arm > 0.075 || target.elevator > 0.12
+                if (current.arm < 0.3 && current.elevator < 0.8 && (target.arm > 0.075 || target.elevator > 0.12
                         || (current.intake > 0.2 && target.intake < 0.1))) {
                     // move the intake out in front
                     setState("A");
@@ -172,9 +173,10 @@ public class SuperStructure {
                     return target;
                 }
 
-                if ((current.arm > 0.3 || (current.intake > 0.4 && current.elevator > 0.2))
+                if ((current.arm > 0.3 || (current.intake > 0.4 && current.elevator > 0.2)
+                        || (current.arm > 0.1 && current.elevator > 0.8))
                         && (current.elevator > 0.15 || target.arm > 0.35 || target.elevator > 0.875)) {
-                    if (target.arm > 0.7) {
+                    if (target.arm > 0.7 || current.elevator > 0.8) {
                         setState("I");
                         return target;
                     } else {
@@ -202,7 +204,7 @@ public class SuperStructure {
             }
         }
 
-        if(target.arm > 0.04 && target.intake > 0.2 && current.arm < 0.0425) {
+        if (target.arm > 0.04 && target.intake > 0.2 && current.arm < 0.0425) {
             return target.setElevatorMin(0.2);
         }
 
@@ -214,7 +216,7 @@ public class SuperStructure {
                     return target.setElevatorMin(0.165).setArmMin(0.02);
                 } else {
                     setState("N");
-                    return target.setElevatorMin(0.16);
+                    return target.setElevatorMin(0.165);
                 }
             } else {
                 if (current.elevator < 0.13) {

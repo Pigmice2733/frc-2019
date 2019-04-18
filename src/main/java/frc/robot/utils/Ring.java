@@ -24,9 +24,6 @@ public class Ring {
         total -= storage[writePos];
         storage[writePos] = value;
 
-        if (readPos == writePos) {
-            readPos = (readPos + 1) % size;
-        }
         writePos = (writePos + 1) % size;
 
         total += value;
