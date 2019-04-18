@@ -72,7 +72,7 @@ public class Robot extends TimedRobot {
         CameraServer server = CameraServer.getInstance();
         server.startAutomaticCapture("Driver Cam", 0);
 
-        // Vision.start();
+        Vision.start();
     }
 
     @Override

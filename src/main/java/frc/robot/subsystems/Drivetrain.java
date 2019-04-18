@@ -33,7 +33,7 @@ public class Drivetrain {
         this.trackwidth = trackwidth;
 
         Bounds visionOutputBounds = new Bounds(-0.6, 0.6);
-        Gains alignmentGains = new Gains(-0.012, 0.0, 0.0);
+        Gains alignmentGains = new Gains(-0.015, 0.0, 0.0);
         visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
 
         // this.nonLinearStateEstimator = new Odometry(0.0, 0.0, navx.getAngle());
