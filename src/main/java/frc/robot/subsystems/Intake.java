@@ -119,6 +119,12 @@ public class Intake {
                 rateExceeded = false;
                 startBalancing();
             }
+        
+            if(getVelocity() > 0.5) {
+                System.out.println("Too fast!");
+                output = Math.min(output, 0.25);
+            }
+
             pivot.set(output);
             follower.set(-output);
         }

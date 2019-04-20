@@ -33,7 +33,7 @@ public class Vision {
 
     // Compensation factor for camera being off center, in fraction of distance
     // between vision targets
-    private static final double cameraOffsetCompensation = 0.75;
+    private static final double cameraOffsetCompensation = 0.6;
     // Horizontal field of view in degrees;
     private static final double FOV = 60.0;
 
