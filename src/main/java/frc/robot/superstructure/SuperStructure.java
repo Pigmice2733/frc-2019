@@ -43,7 +43,7 @@ public class SuperStructure {
         public static final Pose CARGO_B_TOP = new Pose(0.825, 0.90, Intake.Target.STOWED_UP);
         public static final Pose CARGO_INTAKE = new Pose(0.02, Arm.Target.DOWN_UP, Intake.Target.INTAKE);
         public static final Pose CARGO_INTAKE_HIGH = new Pose(0.02, Arm.Target.DOWN_UP, Intake.Target.INTAKE - 0.075);
-        public static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.0, Arm.Target.CARGO_OUTTAKE, 0.5);
+        public static final Pose CARGO_OUTTAKE_BOTTOM = new Pose(0.0, Arm.Target.CARGO_OUTTAKE, 0.52);
         public static final Pose PRE_CLIMB = new Pose(0.1, Arm.Target.CLIMB, Intake.Target.CLIMB);
     }
 
@@ -105,8 +105,13 @@ public class SuperStructure {
                 if (current.arm < 0.3 && current.elevator < 0.8 && (target.arm > 0.075 || target.elevator > 0.12
                         || (current.intake > 0.2 && target.intake < 0.1))) {
                     // move the intake out in front
-                    setState("A");
-                    return current.setIntakeMin(0.56);
+                    if(current.intake < 0.3 && target.intake > 0.47) {
+                        setState("A1");
+                        return current.setArmMin(0.4).setIntake(0.075);
+                    } else {
+                       setState("A2");
+                       return current.setIntakeMin(0.56);
+                    }
                 }
 
                 // Arm is trying to swing down
@@ -144,7 +149,10 @@ public class SuperStructure {
                         setState("E1");
                         return target.setIntakeMin(0.56).setElevatorMin(0.35).setArmMin(0.2);
                     } else {
-                        if (current.intake > 0.465 && target.arm < 0.15) {
+                        if(current.arm < 0.3) {
+                            setState("E1.5");
+                            return current.setElevatorMin(0.3).setArmMin(0.4);
+                        } else if (current.intake > 0.465 && target.arm < 0.15) {
                             if (target.elevator < 0.01 && target.arm <= 0.11 && target.arm > 0.1) {
                                 setState("E2");
                                 return target.setIntakeMin(0.56).setElevatorMin(0.05);
@@ -198,8 +206,12 @@ public class SuperStructure {
         }
 
         if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.DOWN_UP)) {
-            if (current.arm < (target.arm - 0.025)) {
+            if(current.intake < 0.47) {
                 setState("L2");
+                return current.setElevatorMin(0.5).setArmMin(0.4);
+            }
+            if (current.arm < (target.arm - 0.025)) {
+                setState("L3");
                 return target.setElevatorMin(0.3);
             }
         }

@@ -72,7 +72,7 @@ public class Robot extends TimedRobot {
         CameraServer server = CameraServer.getInstance();
         server.startAutomaticCapture("Driver Cam", 0);
 
-        // Vision.start();
+        Vision.start();
     }
 
     @Override
@@ -102,7 +102,7 @@ public class Robot extends TimedRobot {
     public void testPeriodic() {
         drivetrain.arcadeDrive(controls.drive(), controls.steer());
 
-        intake.setRoller(0.0);
+        //intake.setRoller(0.0);
         manipulator.drive(0);
 
         elevator.updateSensor();
@@ -113,6 +113,12 @@ public class Robot extends TimedRobot {
 
         intake.updateSensor();
         intake.drive(-controls.operator.getRawAxis(5) * 0.35);
+
+        if(controls.operator.getRawButton(5)) {
+            intake.setRoller(0.5);
+        } else {
+            intake.setRoller(0.0);
+        }
 
         if (controls.X()) {
             stingers.extend();
@@ -165,7 +171,12 @@ public class Robot extends TimedRobot {
                 manipulator.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                manipulator.drive(-0.20);
+                if(arm.getVelocity() > 0.0075) {
+                    manipulator.drive(-0.40);
+                    System.out.println("Tight hold");
+                } else {
+                    manipulator.drive(-0.20);
+                }
                 intake.setRoller(0.0);
             }
         }
@@ -275,6 +286,10 @@ public class Robot extends TimedRobot {
         REV.configureNeo(intakeFollower);
 
         TalonSRX intakeRoller = new TalonSRX(11);
+        intakeRoller.configContinuousCurrentLimit(25, 10);
+        intakeRoller.configPeakCurrentLimit(0, 10);
+        intakeRoller.configPeakCurrentDuration(0, 10);
+        intakeRoller.enableCurrentLimit(true);
         intake = new Intake(intakePivot, intakeFollower, intakePivot.getEncoder(), intakeRoller, navx);
     }
 }

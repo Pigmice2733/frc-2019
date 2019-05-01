@@ -33,7 +33,7 @@ public class Vision {
 
     // Compensation factor for camera being off center, in fraction of distance
     // between vision targets
-    private static final double cameraOffsetCompensation = 0.32;
+    private static final double cameraOffsetCompensation = 0.6;
     // Horizontal field of view in degrees;
     private static final double FOV = 60.0;
 
@@ -74,7 +74,7 @@ public class Vision {
 
     private static void update() {
         double currentTime = Timer.getFPGATimestamp();
-        if (!initialized) {
+        if (!initialized || port == null) {
             initPort();
         } else {
             try {
@@ -96,7 +96,7 @@ public class Vision {
 
         if (endIndex > startIndex && startIndex > -1) {
             String centerString = input.substring(startIndex + 6, separatorIndex);
-            if (centerString.length() == 4 && centerString.toLowerCase().equals("None")) {
+            if (centerString.length() == 4 && centerString.toLowerCase().equals("none")) {
                 Vision.targetVisible = false;
                 Vision.targetAngle = 0.0;
             } else {
