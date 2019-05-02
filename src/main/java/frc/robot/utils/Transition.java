@@ -1,5 +1,8 @@
 package frc.robot.utils;
 
+/**
+ * Describes a transition in position/velocity/etc over a set period of time
+ */
 public class Transition {
     private double start;
     private double rate;
@@ -7,7 +10,7 @@ public class Transition {
 
     /**
      * Creates a transition.
-     * 
+     *
      * @param start    Start value for the transition
      * @param end      End value for the transition
      * @param duration Duration of the transition
@@ -20,7 +23,7 @@ public class Transition {
 
     /**
      * Creates a 0.0 to 0.0 transition with duration 1.0.
-     * 
+     *
      * @return A zero transition
      */
     public static Transition zero() {
@@ -29,7 +32,7 @@ public class Transition {
 
     /**
      * Gets the value at the specified time into the transition.
-     * 
+     *
      * @param time How far into the transition to get the value at
      * @return The value of the transition
      */
@@ -41,7 +44,7 @@ public class Transition {
     /**
      * Integrates the value of the transition from the beginning to the specified
      * time.
-     * 
+     *
      * @param time How far into the transition to integrate to
      * @return The integral of the transition
      */
@@ -52,7 +55,7 @@ public class Transition {
 
     /**
      * Gets the rate of the transition.
-     * 
+     *
      * @return Transition rate
      */
     public double getRate() {

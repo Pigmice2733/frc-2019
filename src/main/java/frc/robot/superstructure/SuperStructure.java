@@ -16,7 +16,7 @@ public class SuperStructure {
 
     private Pose finalTarget;
 
-    private static boolean antiCollisionLogging = true;
+    private static boolean antiCollisionLogging = false;
 
     private static final Bounds intakeCollision = new Bounds(0.115, 0.47);
 
@@ -105,12 +105,12 @@ public class SuperStructure {
                 if (current.arm < 0.3 && current.elevator < 0.8 && (target.arm > 0.075 || target.elevator > 0.12
                         || (current.intake > 0.2 && target.intake < 0.1))) {
                     // move the intake out in front
-                    if(current.intake < 0.3 && target.intake > 0.47) {
+                    if (current.intake < 0.3 && target.intake > 0.47) {
                         setState("A1");
                         return current.setArmMin(0.4).setIntake(0.075);
                     } else {
-                       setState("A2");
-                       return current.setIntakeMin(0.56);
+                        setState("A2");
+                        return current.setIntakeMin(0.56);
                     }
                 }
 
@@ -149,7 +149,7 @@ public class SuperStructure {
                         setState("E1");
                         return target.setIntakeMin(0.56).setElevatorMin(0.35).setArmMin(0.2);
                     } else {
-                        if(current.arm < 0.3) {
+                        if (current.arm < 0.3) {
                             setState("E1.5");
                             return current.setElevatorMin(0.3).setArmMin(0.4);
                         } else if (current.intake > 0.465 && target.arm < 0.15) {
@@ -206,7 +206,7 @@ public class SuperStructure {
         }
 
         if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.DOWN_UP)) {
-            if(current.intake < 0.47) {
+            if (current.intake < 0.47) {
                 setState("L2");
                 return current.setElevatorMin(0.5).setArmMin(0.4);
             }
