@@ -102,7 +102,7 @@ public class Robot extends TimedRobot {
     public void testPeriodic() {
         drivetrain.arcadeDrive(controls.drive(), controls.steer());
 
-        //intake.setRoller(0.0);
+        // intake.setRoller(0.0);
         manipulator.drive(0);
 
         elevator.updateSensor();
@@ -114,7 +114,7 @@ public class Robot extends TimedRobot {
         intake.updateSensor();
         intake.drive(-controls.operator.getRawAxis(5) * 0.35);
 
-        if(controls.operator.getRawButton(5)) {
+        if (controls.operator.getRawButton(5)) {
             intake.setRoller(0.5);
         } else {
             intake.setRoller(0.0);
@@ -171,7 +171,7 @@ public class Robot extends TimedRobot {
                 manipulator.drive(0.6);
                 intake.setRoller(0.0);
             } else {
-                if(arm.getVelocity() > 0.0075) {
+                if (arm.getVelocity() > 0.0075) {
                     manipulator.drive(-0.40);
                     System.out.println("Tight hold");
                 } else {

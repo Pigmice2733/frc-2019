@@ -5,15 +5,15 @@ package frc.robot.utils;
  */
 public interface XY {
     /**
-     * The x component of a 2D data type.
-     * 
+     * Gets the x component of this 2D data type
+     *
      * @return The x component
      */
     public double getX();
 
     /**
-     * The y component of a 2D data type.
-     * 
+     * Gets the y component of this 2D data type
+     *
      * @return The y component
      */
     public double getY();

@@ -18,18 +18,16 @@ public class PointTest {
     public void equalsTest() {
         Point one = new Point(5.3, 6.0);
         Vector vector = new Vector(5.3, 6.0);
-        Point two = new Point(5.3000000000001, 5.99999999999999999);
-        Point three = new Point(5.2, 6.0);
-        Point four = new Point(5.3, -6.0);
+        Point two = new Point(5.2, 6.0);
+        Point three = new Point(5.3, -6.0);
 
         Assert.assertFalse(one.equals(null));
         Assert.assertFalse(one.equals(vector));
         Assert.assertTrue(one.equals(one));
-        Assert.assertTrue(one.equals(two));
 
+        Assert.assertFalse(one.equals(two));
         Assert.assertFalse(one.equals(three));
-        Assert.assertFalse(one.equals(four));
-        Assert.assertFalse(three.equals(four));
+        Assert.assertFalse(two.equals(three));
     }
 
     @Test

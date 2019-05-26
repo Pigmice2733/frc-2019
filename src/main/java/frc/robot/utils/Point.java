@@ -1,16 +1,16 @@
 package frc.robot.utils;
 
 /**
- * 2D point data type
+ * A Point represents a point in some 2D space
  */
 public class Point implements XY {
     private final double x, y;
 
     /**
-     * Constructs a point from x and y coordinates.
-     * 
-     * @param x The x coordinate of the point
-     * @param y The y coordinate of the point
+     * Constructs a Point from x, y coordinates
+     *
+     * @param x The x coordinate of the Point
+     * @param y The y coordinate of the Point
      */
     public Point(double x, double y) {
         this.x = x;
@@ -18,29 +18,19 @@ public class Point implements XY {
     }
 
     /**
-     * Returns the origin (0, 0) point, each component
-     * is zero.
-     * 
+     * Returns the origin (0, 0) Point, where each component
+     * is zero
+     *
      * @return The origin
      */
     public static Point origin() {
         return new Point(0, 0);
     }
 
-    /**
-     * Gets the x coordinate of the point.
-     * 
-     * @return The x coordinate
-     */
     public double getX() {
         return x;
     }
 
-    /**
-     * Gets the y coordinate of the point.
-     * 
-     * @return The y coordinate
-     */
     public double getY() {
         return y;
     }
@@ -50,11 +40,13 @@ public class Point implements XY {
         if (o == this) {
             return true;
         }
+
         if ((o == null) || (o.getClass() != this.getClass())) {
             return false;
         }
+
         Point other = (Point) o;
-        return Utils.almostEquals(x, other.x) && Utils.almostEquals(y, other.y);
+        return x == other.x && y == other.y;
     }
 
     @Override
@@ -63,31 +55,31 @@ public class Point implements XY {
     }
 
     /**
-     * Translates this point by a vector.
-     * 
-     * @param translation The vector to add to this point
-     * @return The translated vector
+     * Translates this Point by a {@link Vector Vector}
+     *
+     * @param translation The Vector to add to this Point
+     * @return The translated Vector
      */
     public Point translate(Vector translation) {
         return new Point(x + translation.getX(), y + translation.getY());
     }
 
     /**
-     * Finds the vector offset between this point and another.
-     * 
-     * @param p The point to subtract from this one
-     * @return The vector offset between the points
+     * Finds the {@link Vector Vector} offset between this Point and another
+     *
+     * @param p The Point to subtract from this one
+     * @return The Vector offset between the Points
      */
     public Vector subtract(Point p) {
         return new Vector(x - p.x, y - p.y);
     }
 
     /**
-     * Rotates this point
-     * 
+     * Rotates this Point by a specific angle
+     *
      * @param angle  The angle in radians to rotate by
      * @param center The center of rotation
-     * @return The rotated point
+     * @return The rotated Point
      */
     public Point rotate(double angle, Point center) {
         Vector offset = subtract(center);

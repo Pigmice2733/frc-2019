@@ -1,16 +1,16 @@
 package frc.robot.utils;
 
 /**
- * 2D vector data type
+ * A 2D vector data type
  */
 public class Vector implements XY {
     private final double x, y;
 
     /**
-     * Constructs a vector from x and y components.
-     * 
-     * @param x The x component of the vector
-     * @param y The y component of the vector
+     * Constructs a Vector from x and y components.
+     *
+     * @param x The x component of the Vector
+     * @param y The y component of the Vector
      */
     public Vector(double x, double y) {
         this.x = x;
@@ -18,29 +18,19 @@ public class Vector implements XY {
     }
 
     /**
-     * Returns the zero vector, which has no length or direction, each component is
-     * zero.
-     * 
-     * @return The zero vector
+     * Returns the zero Vector, which has no length or direction and each component
+     * is zero.
+     *
+     * @return The zero Vector
      */
     public static Vector zero() {
         return new Vector(0, 0);
     }
 
-    /**
-     * Gets the x component of the vector.
-     * 
-     * @return The x component
-     */
     public double getX() {
         return x;
     }
 
-    /**
-     * Gets the y component of the vector.
-     * 
-     * @return y component
-     */
     public double getY() {
         return y;
     }
@@ -54,7 +44,7 @@ public class Vector implements XY {
             return false;
         }
         Vector other = (Vector) o;
-        return Utils.almostEquals(x, other.x) && Utils.almostEquals(y, other.y);
+        return x == other.x && y == other.y;
     }
 
     @Override
@@ -63,48 +53,49 @@ public class Vector implements XY {
     }
 
     /**
-     * Scales the vector by a scalar factor.
-     * 
-     * @param scale The factor to scale each vector
-     * @return The scaled vector
+     * Scales this Vector by a scalar factor.
+     *
+     * @param scale The factor to scale by
+     * @return The scaled Vector
      */
     public Vector scale(double scale) {
         return new Vector(x * scale, y * scale);
     }
 
     /**
-     * Adds another vector to this one and returns the result.
-     * 
-     * @param v The vector to add to this one
-     * @return The sum of the vectors
+     * Adds another Vector to this Vector
+     *
+     * @param v The Vector to add to this one
+     * @return The sum of the Vectors
      */
     public Vector add(Vector v) {
         return new Vector(x + v.x, y + v.y);
     }
 
     /**
-     * Computes the magnitude of this vector.
-     * 
-     * @return The magnitude of this vector
+     * Computes the magnitude of this Vector.
+     *
+     * @return The magnitude of this Vector
      */
     public double getMagnitude() {
         return Math.sqrt(x * x + y * y);
     }
 
     /**
-     * Calculates the angle of this vector in radians.
-     * 
-     * @return The angle of this vector
+     * Calculates the angle of this Vector in radians. The angle is measured
+     * counterclockwise from the x axis.
+     *
+     * @return The angle of this Vector in radians
      */
     public double getAngle() {
         return Math.atan2(y, x);
     }
 
     /**
-     * Rotates the vector by an angle.
-     * 
+     * Returns this Vector rotated counterclockwise by a specified angle.
+     *
      * @param angle The rotation angle in radians
-     * @return The rotated vector
+     * @return The rotated Vector
      */
     public Vector rotate(double angle) {
         double rotatedX = x * Math.cos(angle) - y * Math.sin(angle);
