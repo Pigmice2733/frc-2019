@@ -1,8 +1,8 @@
 package frc.robot.utils;
 
 /**
- * A ring is a circular FIFO structure with a fixed size. Writing to the ring
- * will overwrite the oldest data when the ring is full. Reading from a ring
+ * A Ring is a circular FIFO structure with a fixed size. Writing to the Ring
+ * will overwrite the oldest data when the Ring is full. Reading from a Ring
  * gives the oldest data point that hasn't been overwritten, and replaces it
  * with 0.0.
  */
@@ -19,8 +19,9 @@ public class Ring {
 
     /**
      *
-     * @param size The maximum number of elements the ring can store, > 0
-     * @throws IllegalArgumentException if ring size is < 1
+     * @param size The maximum number of elements the Ring can store, must be
+     *             greater than zero
+     * @throws IllegalArgumentException if Ring size is not greater than zero
      */
     public Ring(int size) throws IllegalArgumentException {
         if (size < 1) {
@@ -32,10 +33,10 @@ public class Ring {
     }
 
     /**
-     * Add an element to the next empty space in the ring, or overwrite the oldest
-     * data if the ring is full.
+     * Add an element to the next empty space in this Ring, or overwrite the oldest
+     * data if this Ring is full.
      *
-     * @param value The number to add to the ring.
+     * @param value The number to add to this Ring
      */
     public void put(double value) {
         if (readPos == writePos % size) {
@@ -52,11 +53,10 @@ public class Ring {
     }
 
     /**
-     * Returns the oldest data point from the ring and replaces it with 0.0. If the
-     * ring
-     * is empty, returns 0.0.
+     * Returns the oldest data point from this Ring and replaces it with 0.0. If
+     * this Ring is empty, returns 0.0.
      *
-     * @return The oldest data point from the ring.
+     * @return The oldest data point from this Ring
      */
     public double pop() {
         if (writePos == readPos % size) {
@@ -75,9 +75,9 @@ public class Ring {
     }
 
     /**
-     * Returns the current average of all the elements in the ring.
+     * Returns the current average of all the elements in this Ring.
      *
-     * @return The current average.
+     * @return The current average
      */
     public double average() {
         return average;

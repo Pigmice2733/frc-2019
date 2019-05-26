@@ -6,7 +6,7 @@ import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Stingers;
-import frc.robot.utils.Bounds;
+import frc.robot.utils.Range;
 import frc.robot.utils.Utils;
 
 public class SuperStructure {
@@ -18,7 +18,7 @@ public class SuperStructure {
 
     private static boolean antiCollisionLogging = false;
 
-    private static final Bounds intakeCollision = new Bounds(0.115, 0.47);
+    private static final Range intakeCollision = new Range(0.115, 0.47);
 
     private static String lastState = "S";
 
@@ -88,8 +88,8 @@ public class SuperStructure {
     /**
      * Returns whether an intermediate value is between a start and end position
      */
-    private static boolean crosses(double start, double end, Bounds boundary) {
-        Bounds range = new Bounds(start, end);
+    private static boolean crosses(double start, double end, Range boundary) {
+        Range range = new Range(start, end);
         return range.overlaps(boundary);
     }
 

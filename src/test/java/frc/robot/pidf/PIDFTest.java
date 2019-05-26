@@ -6,7 +6,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import frc.robot.utils.Bounds;
+import frc.robot.utils.Range;
 import frc.robot.utils.Utils;
 
 public class PIDFTest {
@@ -44,7 +44,7 @@ public class PIDFTest {
     @Test
     public void positionPIDVATest() {
         Gains gains = new Gains(2.0, 4.0, 0.5, 0.0, 1.0, 0.25);
-        Bounds outputBounds = new Bounds(-6.0, 6.0);
+        Range outputBounds = new Range(-6.0, 6.0);
         PIDF pidva = new PIDF(gains, outputBounds);
 
         List<TestPoint> testData = Arrays.asList(
@@ -60,7 +60,7 @@ public class PIDFTest {
     @Test
     public void ratePIFTest() {
         Gains gains = new Gains(1.0, 0.25, 0.0, 1.0, 0.0, 0.0);
-        Bounds outputBounds = new Bounds(-10.0, 10.0);
+        Range outputBounds = new Range(-10.0, 10.0);
         PIDF pf = new PIDF(gains, outputBounds);
 
         List<TestPoint> testData = Arrays.asList(
@@ -77,11 +77,11 @@ public class PIDFTest {
     @Test
     public void continuousPDTest() {
         Gains gains = new Gains(0.02, 0.0, 0.01, 0.0, 0.0, 0.0);
-        Bounds outputBounds = new Bounds(-2.0, 2.0);
+        Range outputBounds = new Range(-2.0, 2.0);
         PIDF pd = new PIDF(gains, outputBounds);
 
         pd.setDerivativeOnInput(true);
-        pd.setContinuous(new Bounds(10, 370), true);
+        pd.setContinuous(new Range(10, 370), true);
 
         List<TestPoint> testData = Arrays.asList(
                 // Continuous PD, like for swerve drive wheel angle control. Derivative on input

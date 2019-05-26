@@ -16,7 +16,7 @@ import frc.robot.motion.StaticProfile;
 import frc.robot.motion.execution.StaticProfileExecutor;
 import frc.robot.pidf.Gains;
 import frc.robot.pidf.PIDF;
-import frc.robot.utils.Bounds;
+import frc.robot.utils.Range;
 import frc.robot.utils.NTStreamer;
 import frc.robot.utils.Utils;
 
@@ -40,8 +40,8 @@ public class Intake {
     private Double targetPosition;
     private Double currentPosition;
 
-    private Bounds sensorBounds = new Bounds(0, 53.0);
-    private Bounds climbRange = new Bounds(0.425, 1.4);
+    private Range sensorBounds = new Range(0, 53.0);
+    private Range climbRange = new Range(0.425, 1.4);
 
     private double maximumRate = 0.5;
     private double positionDelta;
@@ -73,11 +73,11 @@ public class Intake {
         // outputStreamer = new NTStreamer<>("intake", "output");
 
         Gains gains = new Gains(0.2, 0.0, 0.0);
-        Bounds outputBounds = new Bounds(-0.8, 0.8);
+        Range outputBounds = new Range(-0.8, 0.8);
         balancePID = new PIDF(gains, outputBounds);
 
         gains = new Gains(2.4, 0, 0.0, 0.0, 0.5, 0.0);
-        outputBounds = new Bounds(-0.5, 0.5);
+        outputBounds = new Range(-0.5, 0.5);
         positionPID = new PIDF(gains, outputBounds);
 
         zeroSensor();
@@ -119,8 +119,8 @@ public class Intake {
                 rateExceeded = false;
                 startBalancing();
             }
-        
-            if(getVelocity() > 0.5) {
+
+            if (getVelocity() > 0.5) {
                 System.out.println("Too fast!");
                 output = Math.min(output, 0.25);
             }
@@ -181,10 +181,10 @@ public class Intake {
     private void output(Setpoint sp) {
         double angle = Utils.lerp(currentPosition, 0.265, 0.635, 0.5 * Math.PI, Math.PI);
         double gravityCompensation = gravitykF * Math.cos(angle);
-        double output = positionPID.calculateOutput(currentPosition, sp.getPosition(), sp.getVelocity(), sp.getAcceleration(),
-                Timer.getFPGATimestamp()) + gravityCompensation;
+        double output = positionPID.calculateOutput(currentPosition, sp.getPosition(), sp.getVelocity(),
+                sp.getAcceleration(), Timer.getFPGATimestamp()) + gravityCompensation;
 
-        if(currentPosition > 0.025 || output > 0.0) {
+        if (currentPosition > 0.025 || output > 0.0) {
             pivot.set(output);
             follower.set(-output);
         }

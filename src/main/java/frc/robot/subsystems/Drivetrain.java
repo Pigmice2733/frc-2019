@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.robot.motion.Setpoint;
 import frc.robot.pidf.Gains;
 import frc.robot.pidf.PIDF;
-import frc.robot.utils.Bounds;
+import frc.robot.utils.Range;
 import frc.robot.utils.Odometry;
 
 public class Drivetrain {
@@ -32,7 +32,7 @@ public class Drivetrain {
         this.navx = navx;
         this.trackwidth = trackwidth;
 
-        Bounds visionOutputBounds = new Bounds(-0.6, 0.6);
+        Range visionOutputBounds = new Range(-0.6, 0.6);
         Gains alignmentGains = new Gains(-0.015, 0.0, 0.0);
         visionAlignment = new PIDF(alignmentGains, visionOutputBounds);
 

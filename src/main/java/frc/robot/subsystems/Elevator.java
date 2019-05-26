@@ -7,7 +7,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import frc.robot.motion.Setpoint;
 import frc.robot.motion.StaticProfile;
 import frc.robot.motion.execution.StaticProfileExecutor;
-import frc.robot.utils.Bounds;
+import frc.robot.utils.Range;
 import frc.robot.utils.NTStreamer;
 import frc.robot.utils.Utils;
 
@@ -18,7 +18,7 @@ public class Elevator {
 
     private Double currentPosition;
 
-    private Bounds sensorBounds = new Bounds(0, 30400.0);
+    private Range sensorBounds = new Range(0, 30400.0);
 
     private StaticProfileExecutor profileExecutor;
     // private NTStreamer<Double> positionStreamer;

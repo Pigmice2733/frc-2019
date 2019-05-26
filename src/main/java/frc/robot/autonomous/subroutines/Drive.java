@@ -9,7 +9,7 @@ import frc.robot.motion.execution.StaticSteeringController;
 import frc.robot.pidf.Gains;
 import frc.robot.pidf.PIDF;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.utils.Bounds;
+import frc.robot.utils.Range;
 
 public class Drive implements ISubroutine {
 
@@ -33,7 +33,7 @@ public class Drive implements ISubroutine {
         executor = new StaticProfileExecutor(profile, this::driveOutput, drive::getSensorPosition, 0.05);
 
         Gains steeringGains = new Gains(0.001, 0.00004, 0.0);
-        Bounds steeringBounds = new Bounds(-0.2, 0.2);
+        Range steeringBounds = new Range(-0.2, 0.2);
         PIDF steeringPID = new PIDF(steeringGains, steeringBounds);
         steering = new StaticSteeringController(this::getAngle, steeringPID);
     }
@@ -52,7 +52,7 @@ public class Drive implements ISubroutine {
         absoluteHeading = true;
 
         Gains steeringGains = new Gains(0.001, 0.0004, 0.0);
-        Bounds steeringBounds = new Bounds(-0.2, 0.2);
+        Range steeringBounds = new Range(-0.2, 0.2);
         PIDF steeringPID = new PIDF(steeringGains, steeringBounds);
         steering = new StaticSteeringController(this::getAngle, steeringPID, targetAngle);
     }

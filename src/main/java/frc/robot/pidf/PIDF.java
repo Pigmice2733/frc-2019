@@ -1,12 +1,12 @@
 package frc.robot.pidf;
 
-import frc.robot.utils.Bounds;
+import frc.robot.utils.Range;
 
 public class PIDF {
     private Gains gains;
 
-    private Bounds outputBounds;
-    private Bounds inputBounds;
+    private Range outputBounds;
+    private Range inputBounds;
 
     private boolean continuous;
     private boolean useDerivativeOnInput;
@@ -18,7 +18,7 @@ public class PIDF {
 
     private double previousDerivative;
 
-    public PIDF(Gains gains, Bounds outputBounds) {
+    public PIDF(Gains gains, Range outputBounds) {
         this.gains = gains;
         this.outputBounds = outputBounds;
 
@@ -41,7 +41,7 @@ public class PIDF {
     /**
      * Allow error to wrap from one end of the input to another
      */
-    public void setContinuous(Bounds inputBounds, boolean continuous) {
+    public void setContinuous(Range inputBounds, boolean continuous) {
         this.continuous = continuous;
         this.inputBounds = inputBounds;
     }

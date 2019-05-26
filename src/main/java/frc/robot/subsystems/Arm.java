@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.robot.motion.Setpoint;
 import frc.robot.motion.execution.StaticProfileExecutor;
 import frc.robot.motion.StaticProfile;
-import frc.robot.utils.Bounds;
+import frc.robot.utils.Range;
 import frc.robot.utils.NTStreamer;
 import frc.robot.utils.Utils;
 
@@ -34,7 +34,7 @@ public class Arm {
 
     private static double verticalPosition = 0.779;
 
-    private Bounds sensorBounds = new Bounds(0, 9500.0);
+    private Range sensorBounds = new Range(0, 9500.0);
 
     private StaticProfileExecutor profileExecutor;
     // private NTStreamer<Double> positionStreamer;
