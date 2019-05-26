@@ -39,6 +39,26 @@ public class RingTest {
         Assert.assertEquals(4.0, ring.pop(), epsilon);
         Assert.assertEquals(0.0, ring.pop(), epsilon);
         Assert.assertEquals(0.0, ring.pop(), epsilon);
+
+        ring.put(5.0);
+        ring.put(6.0);
+
+        Assert.assertEquals(5.0, ring.pop(), epsilon);
+        Assert.assertEquals(6.0, ring.pop(), epsilon);
+        Assert.assertEquals(0.0, ring.pop(), epsilon);
+
+        ring.put(7.0);
+        ring.put(8.0);
+        ring.put(9.0);
+        ring.put(10.0);
+        ring.put(11.0);
+
+        Assert.assertEquals(8.0, ring.pop(), epsilon);
+        Assert.assertEquals(9.0, ring.pop(), epsilon);
+        Assert.assertEquals(10.0, ring.pop(), epsilon);
+        Assert.assertEquals(11.0, ring.pop(), epsilon);
+        Assert.assertEquals(0.0, ring.pop(), epsilon);
+        Assert.assertEquals(0.0, ring.pop(), epsilon);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -67,5 +87,29 @@ public class RingTest {
 
         ring.pop();
         Assert.assertEquals(3.0 / 3.0, ring.average(), epsilon);
+    }
+
+    @Test
+    public void isEmpty() {
+        Ring ring = new Ring(2);
+
+        Assert.assertTrue(ring.isEmpty());
+
+        ring.pop();
+
+        Assert.assertTrue(ring.isEmpty());
+
+        ring.put(0.0);
+
+        Assert.assertFalse(ring.isEmpty());
+
+        ring.pop();
+
+        Assert.assertTrue(ring.isEmpty());
+
+        ring.put(1.0);
+        ring.put(2.0);
+
+        Assert.assertFalse(ring.isEmpty());
     }
 }

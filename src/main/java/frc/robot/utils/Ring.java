@@ -17,6 +17,8 @@ public class Ring {
     private double total = 0.0;
     private double average = 0.0;
 
+    private boolean empty = true;
+
     /**
      *
      * @param size The maximum number of elements the Ring can store, must be
@@ -28,6 +30,7 @@ public class Ring {
             throw new IllegalArgumentException("Size of ring must be positive");
         }
 
+        empty = true;
         this.size = size;
         storage = new double[size];
     }
@@ -39,7 +42,9 @@ public class Ring {
      * @param value The number to add to this Ring
      */
     public void put(double value) {
-        if (readPos == writePos % size) {
+        if (empty) {
+            empty = false;
+        } else if (writePos == readPos) {
             readPos = (readPos + 1) % size;
         }
 
@@ -59,27 +64,44 @@ public class Ring {
      * @return The oldest data point from this Ring
      */
     public double pop() {
-        if (writePos == readPos % size) {
-            writePos = (writePos + 1) % size;
+        if (empty) {
+            if (readPos == writePos) {
+                writePos = (writePos + 1) % size;
+            }
+            readPos = (readPos + 1) % size;
+            return 0.0;
         }
 
         double value = storage[readPos];
         storage[readPos] = 0.0;
-
         readPos = (readPos + 1) % size;
 
         total -= value;
         average = total / size;
 
+        if (readPos == writePos) {
+            empty = true;
+        }
+
         return value;
     }
 
     /**
-     * Returns the current average of all the elements in this Ring.
+     * Returns the current average of all the elements in this Ring
      *
      * @return The current average
      */
     public double average() {
         return average;
+    }
+
+    /**
+     * Gets whether this Ring has no elements inside
+     *
+     * @return <code>True</code> if this Ring has no elements, <code>False</code>
+     *         otherwise
+     */
+    public boolean isEmpty() {
+        return empty;
     }
 }
