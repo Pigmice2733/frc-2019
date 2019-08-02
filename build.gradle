@@ -45,6 +45,8 @@ repositories {
 }
 
 dependencies {
+    wpi.deps.vendor.loadFrom(project(':robolib'))
+
     implementation wpi.deps.wpilib()
     implementation wpi.deps.vendor.java()
 
@@ -52,6 +54,10 @@ dependencies {
     nativeDesktopZip wpi.deps.vendor.jni(wpi.platforms.desktop)
 
     implementation project(':robolib')
+
+    simulation "edu.wpi.first.halsim:halsim_lowfi:${wpi.wpilibVersion}:${wpi.platforms.desktop}@zip"
+    simulation "edu.wpi.first.halsim:halsim_ds_socket:${wpi.wpilibVersion}:${wpi.platforms.desktop}@zip"
+    simulation "edu.wpi.first.halsim:halsim_print:${wpi.wpilibVersion}:${wpi.platforms.desktop}@zip"
 
     testImplementation 'org.hamcrest:hamcrest:2.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.5.1'

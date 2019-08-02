@@ -73,6 +73,6 @@ public class Turn implements ISubroutine {
         sp = new Setpoint(sp.getPosition() + correction, sp.getVelocity(), sp.getAcceleration(), sp.getCurvature(),
                 sp.getHeading());
 
-        drive.PIDDrive(sp.negate(false), sp);
+        drive.PIDDrive(sp.negate(), sp);
     }
 }
