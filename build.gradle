@@ -47,13 +47,13 @@ repositories {
 dependencies {
     wpi.deps.vendor.loadFrom(project(':robolib'))
 
-    implementation wpi.deps.wpilib()
-    implementation wpi.deps.vendor.java()
+    compile project("robolib")
+
+    compile wpi.deps.wpilib()
+    compile wpi.deps.vendor.java()
 
     nativeZip wpi.deps.vendor.jni(wpi.platforms.roborio)
     nativeDesktopZip wpi.deps.vendor.jni(wpi.platforms.desktop)
-
-    implementation project(':robolib')
 
     simulation "edu.wpi.first.halsim:halsim_lowfi:${wpi.wpilibVersion}:${wpi.platforms.desktop}@zip"
     simulation "edu.wpi.first.halsim:halsim_ds_socket:${wpi.wpilibVersion}:${wpi.platforms.desktop}@zip"
