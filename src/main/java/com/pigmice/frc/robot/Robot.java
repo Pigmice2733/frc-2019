@@ -7,9 +7,13 @@
 
 package com.pigmice.frc.robot;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
+import com.pigmice.frc.lib.logging.Logger;
 import com.pigmice.frc.robot.motorconfig.CTRE;
 import com.pigmice.frc.robot.motorconfig.REV;
 import com.pigmice.frc.robot.subsystems.Arm;
@@ -73,6 +77,16 @@ public class Robot extends TimedRobot {
         server.startAutomaticCapture("Driver Cam", 0);
 
         Vision.start();
+
+        URI driverStation;
+        try{
+            driverStation = new URI("10.27.33.5");
+        } catch(URISyntaxException e) {
+            throw new RuntimeException("Misformatted driver station URI");
+        }
+
+        Logger.configure(driverStation);
+        Logger.start();
     }
 
     @Override
@@ -102,7 +116,6 @@ public class Robot extends TimedRobot {
     public void testPeriodic() {
         drivetrain.arcadeDrive(controls.drive(), controls.steer());
 
-        // intake.setRoller(0.0);
         manipulator.drive(0);
 
         elevator.updateSensor();
@@ -146,10 +159,9 @@ public class Robot extends TimedRobot {
         if (!controls.visionEngaged()) {
             drivetrain.arcadeDrive(controls.drive(), controls.steer());
         } else {
-            if (!Vision.isConnected()) {
-                System.out.println("Vision camera not connected");
+            if (Vision.isConnected()) {
+                drivetrain.visionDrive(controls.drive(), controls.steer(), Vision.targetVisible(), Vision.getOffset());
             }
-            drivetrain.visionDrive(controls.drive(), controls.steer(), Vision.targetVisible(), Vision.getOffset());
         }
 
         if (controls.hatchMode()) {
@@ -173,7 +185,6 @@ public class Robot extends TimedRobot {
             } else {
                 if (arm.getVelocity() > 0.0075) {
                     manipulator.drive(-0.40);
-                    System.out.println("Tight hold");
                 } else {
                     manipulator.drive(-0.20);
                 }

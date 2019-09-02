@@ -74,7 +74,6 @@ public class Drivetrain {
             double output = visionAlignment.calculateOutput(targetAngle, 0.0, Timer.getFPGATimestamp());
             arcadeDrive(forwardSpeed, output);
         } else {
-            System.out.println("Target not visible");
             visionEngaged = false;
             arcadeDrive(forwardSpeed, driverSteer);
         }

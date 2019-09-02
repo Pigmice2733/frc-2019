@@ -3,11 +3,20 @@ package com.pigmice.frc.robot.superstructure;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
+import com.pigmice.frc.lib.logging.Logger;
+
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class SuperStructureTest {
     private static final double epsilon = 1e-6;
+
+    @BeforeAll
+    public static void configureLogger() {
+        Logger.configure(null);
+        Logger.start();
+    }
 
     @Test
     public void startToHatch() {
