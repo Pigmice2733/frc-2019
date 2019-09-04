@@ -63,7 +63,9 @@ public class Robot extends TimedRobot {
 
         configureElevator(5, 6);
         configureArm(7);
-        configureIntake(9, 10, navx);
+
+        boolean isIntakeInstalled = true;
+        configureIntake(9, 10, navx, isIntakeInstalled);
 
         // Lobster + Ball outtake
         manipulator = new Manipulator(new DoubleSolenoid(6, 7), new DoubleSolenoid(4, 5), new VictorSPX(8),
@@ -289,18 +291,22 @@ public class Robot extends TimedRobot {
         arm = new Arm(motor);
     }
 
-    private void configureIntake(int pivot, int follower, AHRS navx) {
-        CANSparkMax intakePivot = new CANSparkMax(pivot, MotorType.kBrushless);
-        CANSparkMax intakeFollower = new CANSparkMax(follower, MotorType.kBrushless);
+    private void configureIntake(int pivot, int follower, AHRS navx, boolean isIntakeInstalled) {
+        if (isIntakeInstalled) {
+            CANSparkMax intakePivot = new CANSparkMax(pivot, MotorType.kBrushless);
+            CANSparkMax intakeFollower = new CANSparkMax(follower, MotorType.kBrushless);
 
-        REV.configureNeo(intakePivot);
-        REV.configureNeo(intakeFollower);
+            REV.configureNeo(intakePivot);
+            REV.configureNeo(intakeFollower);
 
-        TalonSRX intakeRoller = new TalonSRX(11);
-        intakeRoller.configContinuousCurrentLimit(25, 10);
-        intakeRoller.configPeakCurrentLimit(0, 10);
-        intakeRoller.configPeakCurrentDuration(0, 10);
-        intakeRoller.enableCurrentLimit(true);
-        intake = new Intake(intakePivot, intakeFollower, intakePivot.getEncoder(), intakeRoller, navx);
+            TalonSRX intakeRoller = new TalonSRX(11);
+            intakeRoller.configContinuousCurrentLimit(25, 10);
+            intakeRoller.configPeakCurrentLimit(0, 10);
+            intakeRoller.configPeakCurrentDuration(0, 10);
+            intakeRoller.enableCurrentLimit(true);
+            intake = new Intake(intakePivot, intakeFollower, intakePivot.getEncoder(), intakeRoller, navx);
+        } else {
+            intake = Intake.UninstalledIntake();
+        }
     }
 }
