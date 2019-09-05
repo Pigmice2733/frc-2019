@@ -16,15 +16,13 @@ public class SuperStructure {
 
     private Pose finalTarget;
 
-    private static boolean antiCollisionLogging = false;
-
     private static final Range intakeCollision = new Range(0.115, 0.47);
 
     private static Logger.ComponentLogger logger = Logger.createComponent(SuperStructure.class);
 
-    private static String currentState = "S";
+    private static String currentState = "0";
     public static void logState(String newState) {
-        if (!newState.equals(currentState) && antiCollisionLogging) {
+        if (!newState.equals(currentState)) {
             logger.info(currentState + " -> " + newState);
             currentState = newState;
         }
@@ -107,10 +105,10 @@ public class SuperStructure {
                         || (current.intake > 0.2 && target.intake < 0.1))) {
                     // move the intake out in front
                     if (current.intake < 0.3 && target.intake > 0.47) {
-                        logState("A1");
+                        logState("1");
                         return current.setArmMin(0.4).setIntake(0.075);
                     } else {
-                        logState("A2");
+                        logState("2");
                         return current.setIntakeMin(0.56);
                     }
                 }
@@ -119,18 +117,18 @@ public class SuperStructure {
                 if (target.arm < 0.3 && target.elevator < 0.9 && (current.elevator > 0.12 || current.arm > 0.1)) {
                     if (intakeCollision.contains(target.intake)) {
                         if (current.intake < 0.475) {
-                            logState("B1");
+                            logState("3");
                             return current.setIntakeMin(0.56);
                         } else {
-                            logState("B2");
+                            logState("4");
                             return target.setIntakeMin(0.56).setArmMin(0.4).setElevatorMin(0.35);
                         }
                     } else {
                         if (current.intake < 0.475 && target.intake > 0.2 && target.arm < 0.2) {
-                            logState("C1");
+                            logState("5");
                             return current.setIntakeMin(0.56);
                         } else {
-                            logState("C2");
+                            logState("6");
                             return target.setArmMin(0.4).setElevatorMin(0.35);
                         }
                     }
@@ -141,44 +139,44 @@ public class SuperStructure {
                     && (current.elevator < 0.85 || target.elevator < 0.9)
                     && !Utils.almostEquals(target.arm, Arm.Target.DOWN_UP)) {
                 if (current.intake < 0.1 && current.elevator < 0.3) {
-                    logState("D");
+                    logState("7");
                     return target.setElevatorMin(0.35).setArmMin(0.4).setIntake(current.intake);
                 }
 
                 if (current.intake < 0.54 && (current.elevator > 0.12 || current.arm > 0.1)) {
                     if (target.elevator > 0.875) {
-                        logState("E1");
+                        logState("8");
                         return target.setIntakeMin(0.56).setElevatorMin(0.35).setArmMin(0.2);
                     } else {
                         if (current.arm < 0.3) {
-                            logState("E1.5");
+                            logState("9");
                             return current.setElevatorMin(0.3).setArmMin(0.4);
                         } else if (current.intake > 0.465 && target.arm < 0.15) {
                             if (target.elevator < 0.01 && target.arm <= 0.11 && target.arm > 0.1) {
-                                logState("E2");
+                                logState("10");
                                 return target.setIntakeMin(0.56).setElevatorMin(0.05);
                             }
-                            logState("E3");
+                            logState("11");
                             return target.setIntakeMin(0.56).setArmMin(current.arm);
                         } else {
-                            logState("E4");
+                            logState("12");
                             return target.setIntakeMin(0.56).setElevatorMin(0.35).setArmMin(0.4);
                         }
                     }
                 }
 
                 if (current.elevator > 0.12 || current.arm > 0.1 || target.arm > 0.4 || target.elevator > 0.875) {
-                    logState("F");
+                    logState("13");
                     return target.setIntakeMin(0.56);
                 }
 
-                logState("G");
+                logState("14");
                 return target;
             }
 
             if (current.elevator < 0.9 && !Utils.almostEquals(target.arm, Arm.Target.DOWN_UP)) {
                 if (current.arm > 0.6 && target.arm > 0.6) {
-                    logState("H");
+                    logState("15");
                     return target;
                 }
 
@@ -186,38 +184,39 @@ public class SuperStructure {
                         || (current.arm > 0.1 && current.elevator > 0.8))
                         && (current.elevator > 0.15 || target.arm > 0.35 || target.elevator > 0.875)) {
                     if (target.arm > 0.7 || current.elevator > 0.8) {
-                        logState("I");
+                        logState("16");
                         return target;
                     } else {
-                        logState("J");
+                        logState("17");
                         return target.setElevatorMin(0.35).setArmMin(0.4);
                     }
                 }
 
-                logState("K");
+                logState("18");
                 return current.setElevatorMin(0.35).setArmMin(0.4);
             }
         }
 
         if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.CARGO_OUTTAKE)) {
             if (current.arm < (target.arm - 0.035)) {
-                logState("L1");
+                logState("19");
                 return target.setIntakeMin(0.63).setElevatorMin(0.3);
             }
         }
 
         if (target.intake >= 0.5 && Utils.almostEquals(target.arm, Arm.Target.DOWN_UP)) {
             if (current.intake < 0.47) {
-                logState("L2");
+                logState("20");
                 return current.setElevatorMin(0.5).setArmMin(0.4);
             }
             if (current.arm < (target.arm - 0.025)) {
-                logState("L3");
+                logState("21");
                 return target.setElevatorMin(0.3);
             }
         }
 
         if (target.arm > 0.04 && target.intake > 0.2 && current.arm < 0.0425) {
+            logState("22");
             return target.setElevatorMin(0.2);
         }
 
@@ -225,18 +224,18 @@ public class SuperStructure {
         if (Utils.almostEquals(target.arm, Arm.Target.START)) {
             if (current.arm > 0.0) {
                 if (current.elevator < 0.15 && current.arm > 0.015) {
-                    logState("M");
+                    logState("23");
                     return target.setElevatorMin(0.165).setArmMin(0.02);
                 } else {
-                    logState("N");
+                    logState("24");
                     return target.setElevatorMin(0.165);
                 }
             } else {
                 if (current.elevator < 0.13) {
-                    logState("O");
+                    logState("25");
                     return current.setArmMin(0.025).setElevator(0.1);
                 }
-                logState("P");
+                logState("26");
                 return target;
             }
         }
@@ -244,15 +243,15 @@ public class SuperStructure {
         // Exit starting config
         if (current.arm < 0.01) {
             if (current.elevator < 0.15) {
-                logState("Q");
+                logState("27");
                 return current.setElevatorMin(0.2);
             } else {
-                logState("R");
+                logState("28");
                 return target.setElevatorMin(0.2);
             }
         }
 
-        logState("S");
+        logState("29");
         return target;
     }
 }

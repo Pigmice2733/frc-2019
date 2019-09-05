@@ -82,7 +82,7 @@ public class Robot extends TimedRobot {
 
         URI driverStation;
         try{
-            driverStation = new URI("10.27.33.5");
+            driverStation = new URI("ws://10.27.33.5:8181/log");
         } catch(URISyntaxException e) {
             throw new RuntimeException("Misformatted driver station URI");
         }
