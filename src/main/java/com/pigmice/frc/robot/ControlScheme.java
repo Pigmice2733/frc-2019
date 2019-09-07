@@ -54,7 +54,8 @@ public class ControlScheme {
     }
 
     public double steer() {
-        return driver.getX();
+        double steering = driver.getX();
+        return Math.pow(steering, 2) * Math.signum(steering);
     }
 
     public double drive() {
