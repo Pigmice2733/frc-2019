@@ -6,6 +6,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import com.pigmice.frc.lib.logging.Logger;
+
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -42,6 +44,8 @@ public class Vision {
     private static volatile double targetAngle = 0.0;
     private static volatile boolean targetVisible = false;
 
+    private static Logger.ComponentLogger logger = Logger.createComponent(Vision.class);
+
     public static void start() {
         if (!enabled) {
             enabled = true;
@@ -69,6 +73,10 @@ public class Vision {
     }
 
     public static boolean isConnected() {
+        if(!connected) {
+            logger.info("Not connected");
+        }
+
         return connected;
     }
 
@@ -81,7 +89,7 @@ public class Vision {
                 lastMessage = currentTime;
                 parseInput(remainingInput + port.readString());
             } catch (Exception e) {
-                System.out.println(e.toString());
+                logger.error(e.toString());
                 initPort();
             }
         }

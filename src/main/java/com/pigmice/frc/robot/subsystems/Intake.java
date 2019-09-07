@@ -138,7 +138,6 @@ public class Intake {
                 }
 
                 if (getVelocity() > 0.5) {
-                    System.out.println("Too fast!");
                     output = Math.min(output, 0.25);
                 }
 
