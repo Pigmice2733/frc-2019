@@ -14,6 +14,9 @@ public class SuperStructureTest {
 
     @BeforeAll
     public static void configureLogger() {
+        // Force static initialization to run
+        new SuperStructure(null, null, null, null, null);
+
         Logger.configure(null);
         Logger.start();
     }

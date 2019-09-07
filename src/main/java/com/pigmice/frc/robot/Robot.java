@@ -81,9 +81,9 @@ public class Robot extends TimedRobot {
         Vision.start();
 
         URI driverStation;
-        try{
+        try {
             driverStation = new URI("ws://10.27.33.5:8181/log");
-        } catch(URISyntaxException e) {
+        } catch (URISyntaxException e) {
             throw new RuntimeException("Misformatted driver station URI");
         }
 
@@ -161,9 +161,7 @@ public class Robot extends TimedRobot {
         if (!controls.visionEngaged()) {
             drivetrain.arcadeDrive(controls.drive(), controls.steer());
         } else {
-            if (Vision.isConnected()) {
-                drivetrain.visionDrive(controls.drive(), controls.steer(), Vision.targetVisible(), Vision.getOffset());
-            }
+            drivetrain.visionDrive(controls.drive(), controls.steer(), Vision.targetVisible(), Vision.getOffset());
         }
 
         if (controls.hatchMode()) {

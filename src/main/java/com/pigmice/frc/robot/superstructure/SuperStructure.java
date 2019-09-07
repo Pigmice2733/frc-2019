@@ -21,7 +21,8 @@ public class SuperStructure {
     private static Logger.ComponentLogger logger = Logger.createComponent(SuperStructure.class);
 
     private static String currentState = "0";
-    public static void logState(String newState) {
+
+    private static void logState(String newState) {
         if (!newState.equals(currentState)) {
             logger.info(currentState + " -> " + newState);
             currentState = newState;
