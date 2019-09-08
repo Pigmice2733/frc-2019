@@ -14,6 +14,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 import com.pigmice.frc.lib.logging.Logger;
+import com.pigmice.frc.lib.logging.Logger.ComponentLogger;
 import com.pigmice.frc.robot.motorconfig.CTRE;
 import com.pigmice.frc.robot.motorconfig.REV;
 import com.pigmice.frc.robot.subsystems.Arm;
@@ -53,6 +54,8 @@ public class Robot extends TimedRobot {
 
     SuperStructure superStructure;
 
+    ComponentLogger robotLogger = Logger.createComponent("Robot");
+
     @Override
     public void robotInit() {
         controls = new ControlScheme();
@@ -89,10 +92,14 @@ public class Robot extends TimedRobot {
 
         Logger.configure(driverStation);
         Logger.start();
+
+        robotLogger.info("Robot code started");
     }
 
     @Override
     public void autonomousInit() {
+        robotLogger.info("Autonomous init");
+
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
         controls.initialize();
 
@@ -106,6 +113,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        robotLogger.info("Teleop init");
+
         superStructure.initialize(superStructure.getPose());
     }
 
@@ -142,6 +151,11 @@ public class Robot extends TimedRobot {
         } else {
             stingers.stop();
         }
+    }
+
+    @Override
+    public void disabledInit() {
+        robotLogger.info("Disabled");
     }
 
     @Override
