@@ -289,6 +289,8 @@ public class Robot extends TimedRobot {
         elevatorWinch.setInverted(false);
         CTRE.configureFollowerMotor(elevatorFollower, elevatorWinch);
 
+        elevatorFollower.setInverted(true);
+
         CTRE.configCurrentLimit(elevatorWinch);
         CTRE.configCurrentLimit(elevatorFollower);
 
