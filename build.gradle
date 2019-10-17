@@ -8,7 +8,7 @@ targetCompatibility = JavaVersion.VERSION_11
 
 def ROBOT_MAIN_CLASS = "com.pigmice.frc.robot.Main"
 
-deploy {
+deploy {    
     targets {
         roboRIO("roborio") {
             // Team number is loaded either from the .wpilib/wpilib_preferences.json
@@ -42,6 +42,10 @@ def includeDesktopSupport = true
 repositories {
     // Needed for JUnit
     mavenCentral()
+
+    flatDir {
+        dirs './robolib/local-libraries/'
+    }
 }
 
 dependencies {
