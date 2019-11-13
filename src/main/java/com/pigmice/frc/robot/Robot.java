@@ -18,6 +18,7 @@ import com.pigmice.frc.lib.logging.Logger.ComponentLogger;
 import com.pigmice.frc.robot.motorconfig.CTRE;
 import com.pigmice.frc.robot.motorconfig.REV;
 import com.pigmice.frc.robot.subsystems.Arm;
+import com.pigmice.frc.robot.subsystems.AuxLighting;
 import com.pigmice.frc.robot.subsystems.Drivetrain;
 import com.pigmice.frc.robot.subsystems.Elevator;
 import com.pigmice.frc.robot.subsystems.Intake;
@@ -32,6 +33,8 @@ import edu.wpi.cscore.MjpegServer;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 
@@ -53,6 +56,7 @@ public class Robot extends TimedRobot {
     Manipulator manipulator;
 
     SuperStructure superStructure;
+    AuxLighting lighting;
 
     ComponentLogger robotLogger = Logger.createComponent("Robot");
 
@@ -81,6 +85,8 @@ public class Robot extends TimedRobot {
         CameraServer server = CameraServer.getInstance();
         server.startAutomaticCapture("Driver Cam", 0);
 
+        lighting = new AuxLighting(9);
+
         Vision.start();
 
         URI driverStation;
@@ -102,6 +108,12 @@ public class Robot extends TimedRobot {
 
         superStructure.initialize(SuperStructure.Target.HATCH_BOTTOM);
         controls.initialize();
+
+        if (DriverStation.getInstance().getAlliance() == Alliance.Red) {
+            lighting.setBaseColor(AuxLighting.Color.RED);
+        } else {
+            lighting.setBaseColor(AuxLighting.Color.BLUE);
+        }
 
         trimMode = false;
     }
@@ -263,6 +275,16 @@ public class Robot extends TimedRobot {
                 arm.setPosition(trimArmPose);
                 trimMode = false;
             }
+        }
+
+        if(arm.getPosition() <= Arm.Target.CLIMB) {
+            lighting.resetToBase();
+        } else if(manipulator.hasHatch()) {
+            lighting.setColor(AuxLighting.Color.YELLOW);
+        } else if (manipulator.hasBall()) {
+            lighting.setColor(AuxLighting.Color.ORANGE);
+        } else {
+            lighting.resetToBase();
         }
     }
 

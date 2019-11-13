@@ -20,7 +20,9 @@ public class Manipulator {
 
     private Value solenoid1State, solenoid2State;
 
-    private final int detectionThreshold = 815;
+    private final int ballDetectionThreshold = 815;
+    private final int hatchDetectionThreshold = 145;
+    private final int noHatchDetectionThreshold = 400;
 
     public Manipulator(DoubleSolenoid solenoid1, DoubleSolenoid solendoid2, VictorSPX motor, AnalogInput IR) {
         this.solenoid1 = solenoid1;
@@ -29,7 +31,7 @@ public class Manipulator {
         this.motor = motor;
 
         this.IR = IR;
-        this.IR.setAverageBits(2);
+        this.IR.setAverageBits(5);
         this.IR.setOversampleBits(0);
 
         solenoid1State = solenoid1.get();
@@ -41,7 +43,12 @@ public class Manipulator {
     }
 
     public boolean hasBall() {
-        return IR.getAverageValue() > detectionThreshold;
+        return IR.getAverageValue() >= ballDetectionThreshold;
+    }
+
+    public boolean hasHatch() {
+        int value = IR.getAverageValue();
+        return value >= hatchDetectionThreshold && value < noHatchDetectionThreshold;
     }
 
     public void setPosition(State value) {
