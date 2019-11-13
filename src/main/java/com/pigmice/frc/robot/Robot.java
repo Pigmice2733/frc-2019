@@ -34,9 +34,9 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class Robot extends TimedRobot {
     ControlScheme controls;
@@ -277,7 +277,11 @@ public class Robot extends TimedRobot {
             }
         }
 
-        if (manipulator.hasBall()) {
+        if(arm.getPosition() <= Arm.Target.CLIMB) {
+            lighting.resetToBase();
+        } else if(manipulator.hasHatch()) {
+            lighting.setColor(AuxLighting.Color.YELLOW);
+        } else if (manipulator.hasBall()) {
             lighting.setColor(AuxLighting.Color.ORANGE);
         } else {
             lighting.resetToBase();

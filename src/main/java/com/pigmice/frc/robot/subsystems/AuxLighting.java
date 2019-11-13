@@ -8,7 +8,7 @@ public class AuxLighting {
     private Color baseColor;
 
     public enum Color {
-        DEFAULT(0.91), RED(0.61), BLUE(0.87), ORANGE(0.65);
+        DEFAULT(0.91), RED(0.61), BLUE(0.87), ORANGE(0.63), YELLOW(0.69);
 
         private final Double value;
 
