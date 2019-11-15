@@ -8,7 +8,7 @@ targetCompatibility = JavaVersion.VERSION_11
 
 def ROBOT_MAIN_CLASS = "com.pigmice.frc.robot.Main"
 
-deploy {    
+deploy {
     targets {
         roboRIO("roborio") {
             // Team number is loaded either from the .wpilib/wpilib_preferences.json
@@ -76,9 +76,9 @@ jar {
 test {
     maxParallelForks = 2
     useJUnitPlatform()
-	testLogging {
+    testLogging {
         events "passed", "skipped", "failed"
-	}
+    }
 }
 
 wrapper {

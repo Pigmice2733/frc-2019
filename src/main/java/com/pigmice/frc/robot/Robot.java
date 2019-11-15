@@ -13,8 +13,11 @@ import java.net.URISyntaxException;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
+import com.pigmice.frc.lib.logging.ILoggingClient;
+import com.pigmice.frc.lib.logging.ILoggingClient.LoggingUnavailableException;
 import com.pigmice.frc.lib.logging.Logger;
 import com.pigmice.frc.lib.logging.Logger.ComponentLogger;
+import com.pigmice.frc.lib.logging.LoggingClient;
 import com.pigmice.frc.robot.motorconfig.CTRE;
 import com.pigmice.frc.robot.motorconfig.REV;
 import com.pigmice.frc.robot.subsystems.Arm;
@@ -90,8 +93,11 @@ public class Robot extends TimedRobot {
             throw new RuntimeException("Misformatted driver station URI");
         }
 
-        Logger.configure(driverStation);
-        Logger.start();
+        try {
+            ILoggingClient client = new LoggingClient(driverStation);
+            Logger.configure(client);
+            Logger.start();
+        } catch (LoggingUnavailableException e) {}
 
         robotLogger.info("Robot code started");
     }
